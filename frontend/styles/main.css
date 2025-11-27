@@ -1,0 +1,214 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* SOFTER ROBINHOOD GRADIENT */
+body.dark {
+    --bg-gradient: linear-gradient(160deg, #013d26 0%, #011c13 40%, #000000 100%);
+    --glass-bg: rgba(0, 20, 14, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --text-main: #e8fdf2;
+    --text-soft: #98c7ac;
+}
+
+html, body {
+    height: 100%;
+    background: var(--bg-gradient);
+    font-family: "Inter", sans-serif;
+    color: var(--text-main);
+}
+
+/* APP SHELL */
+.app-shell {
+    display: flex;
+    height: 100vh;
+    padding: 20px;
+    gap: 20px;
+}
+
+/* GLASS */
+.glass-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px);
+    border-radius: 20px;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* SIDEBAR SPACING FIX */
+.sidebar-top {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00ff88, #00a358);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #002915;
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+
+.profile-name {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.nav-main {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* TAB BUTTONS */
+.nav-item {
+    border: none;
+    background: transparent;
+    padding: 12px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.nav-item:hover {
+    background: rgba(0, 255, 150, 0.1);
+    transform: translateX(4px);
+}
+
+.nav-item.active {
+    background: rgba(0, 255, 150, 0.25);
+    color: #d9ffef;
+}
+
+/* BOTTOM SECTION */
+.sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: auto;
+}
+
+/* LOGOUT */
+.nav-logout {
+    color: #ff7979;
+}
+
+/* MAIN CONTENT */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* HEADER */
+.main-header {
+    padding: 22px;
+}
+
+/* GRID */
+.finance-layout {
+    display: grid;
+    grid-template-columns: 2fr auto 1fr;
+    gap: 20px;
+}
+
+/* GRAPH PANEL */
+.graph-panel {
+    padding: 20px;
+    position: relative;
+}
+
+.graph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Filters — redesigned */
+.graph-filters {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-btn {
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.15);
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text-soft);
+    transition: 0.2s;
+}
+
+.filter-btn:hover {
+    background: rgba(0,255,150,0.15);
+}
+
+.filter-btn.active {
+    background: rgba(0,255,150,0.35);
+    color: #d9ffef;
+    border-color: rgba(0,255,150,0.6);
+}
+
+/* GRAPH BODY */
+.graph-body {
+    height: 340px;
+    margin-top: 10px;
+}
+
+/* SUMMARY CARDS */
+.summary-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.summary-card {
+    padding: 16px;
+    border-radius: 18px;
+}
+
+.color-pill {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.pill-checking { background: #c084ff; }
+.pill-savings { background: #00ff9d; }
+.pill-expenses { background: #ff6b6b; }
+.pill-credit { background: #38bdf8; }
+
+.vertical-divider {
+    width: 1px;
+    background: rgba(255,255,255,0.1);
+}
