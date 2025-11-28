@@ -1,27 +1,23 @@
-// Toggle between Login and Signup
-const authToggles = document.querySelectorAll('.auth-toggle');
+// Get form elements
 const loginForm = document.getElementById('loginForm');
 const signupForm = document.getElementById('signupForm');
+const createAccountLink = document.querySelector('.create-account-link');
+const backToLoginLink = document.querySelector('.back-to-login-link');
 
-authToggles.forEach(toggle => {
-    toggle.addEventListener('click', () => {
-        const mode = toggle.dataset.mode;
-        
-        // Update active states
-        authToggles.forEach(t => t.classList.remove('active'));
-        toggle.classList.add('active');
-        
-        // Switch forms
-        if (mode === 'login') {
-            loginForm.classList.add('active');
-            signupForm.classList.remove('active');
-            clearFormErrors(signupForm);
-        } else {
-            signupForm.classList.add('active');
-            loginForm.classList.remove('active');
-            clearFormErrors(loginForm);
-        }
-    });
+// Toggle to signup form
+createAccountLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.classList.remove('active');
+    signupForm.classList.add('active');
+    clearFormErrors(loginForm);
+});
+
+// Toggle back to login form
+backToLoginLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    signupForm.classList.remove('active');
+    loginForm.classList.add('active');
+    clearFormErrors(signupForm);
 });
 
 // Password Toggle Functionality
@@ -47,14 +43,19 @@ togglePasswordButtons.forEach(button => {
 });
 
 // Validation Functions
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+function isValidUsername(username) {
+    // At least 3 characters
+    return username.length >= 3;
 }
 
 function isValidPassword(password) {
     // At least 6 characters
     return password.length >= 6;
+}
+
+function isValidName(name) {
+    // At least 2 characters
+    return name.length >= 2;
 }
 
 function showError(input, message) {
@@ -91,23 +92,21 @@ document.querySelectorAll('input').forEach(input => {
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const email = document.getElementById('loginEmail');
+    const username = document.getElementById('loginUsername');
     const password = document.getElementById('loginPassword');
     const submitBtn = loginForm.querySelector('.submit-btn');
-    const btnText = submitBtn.querySelector('.btn-text');
-    const btnLoader = submitBtn.querySelector('.btn-loader');
     
     let isValid = true;
     
     // Clear previous errors
     clearFormErrors(loginForm);
     
-    // Validate email
-    if (!email.value.trim()) {
-        showError(email, 'Email is required');
+    // Validate username
+    if (!username.value.trim()) {
+        showError(username, 'Username is required');
         isValid = false;
-    } else if (!isValidEmail(email.value.trim())) {
-        showError(email, 'Please enter a valid email address');
+    } else if (!isValidUsername(username.value.trim())) {
+        showError(username, 'Username must be at least 3 characters');
         isValid = false;
     }
     
@@ -119,14 +118,12 @@ loginForm.addEventListener('submit', async (e) => {
     
     if (!isValid) return;
     
-    // Show loading state
+    // Disable button during submission
     submitBtn.disabled = true;
-    btnText.classList.add('hidden');
-    btnLoader.classList.remove('hidden');
     
     // Prepare data for backend
     const formData = {
-        email: email.value.trim(),
+        username: username.value.trim(),
         password: password.value
     };
     
@@ -143,7 +140,7 @@ loginForm.addEventListener('submit', async (e) => {
         // const data = await response.json();
         
         // Simulate API call for now
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 800));
         
         // Success handling
         console.log('Login successful:', formData);
@@ -152,12 +149,10 @@ loginForm.addEventListener('submit', async (e) => {
         
     } catch (error) {
         console.error('Login error:', error);
-        showError(password, 'Invalid email or password');
+        showError(password, 'Invalid username or password');
     } finally {
         // Reset button state
         submitBtn.disabled = false;
-        btnText.classList.remove('hidden');
-        btnLoader.classList.add('hidden');
     }
 });
 
@@ -165,34 +160,41 @@ loginForm.addEventListener('submit', async (e) => {
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const name = document.getElementById('signupName');
-    const email = document.getElementById('signupEmail');
+    const firstName = document.getElementById('signupFirstName');
+    const lastName = document.getElementById('signupLastName');
+    const username = document.getElementById('signupUsername');
     const password = document.getElementById('signupPassword');
-    const confirmPassword = document.getElementById('signupConfirmPassword');
     const submitBtn = signupForm.querySelector('.submit-btn');
-    const btnText = submitBtn.querySelector('.btn-text');
-    const btnLoader = submitBtn.querySelector('.btn-loader');
     
     let isValid = true;
     
     // Clear previous errors
     clearFormErrors(signupForm);
     
-    // Validate name
-    if (!name.value.trim()) {
-        showError(name, 'Name is required');
+    // Validate first name
+    if (!firstName.value.trim()) {
+        showError(firstName, 'First name is required');
         isValid = false;
-    } else if (name.value.trim().length < 2) {
-        showError(name, 'Name must be at least 2 characters');
+    } else if (!isValidName(firstName.value.trim())) {
+        showError(firstName, 'First name must be at least 2 characters');
         isValid = false;
     }
     
-    // Validate email
-    if (!email.value.trim()) {
-        showError(email, 'Email is required');
+    // Validate last name
+    if (!lastName.value.trim()) {
+        showError(lastName, 'Last name is required');
         isValid = false;
-    } else if (!isValidEmail(email.value.trim())) {
-        showError(email, 'Please enter a valid email address');
+    } else if (!isValidName(lastName.value.trim())) {
+        showError(lastName, 'Last name must be at least 2 characters');
+        isValid = false;
+    }
+    
+    // Validate username
+    if (!username.value.trim()) {
+        showError(username, 'Username is required');
+        isValid = false;
+    } else if (!isValidUsername(username.value.trim())) {
+        showError(username, 'Username must be at least 3 characters');
         isValid = false;
     }
     
@@ -205,26 +207,16 @@ signupForm.addEventListener('submit', async (e) => {
         isValid = false;
     }
     
-    // Validate confirm password
-    if (!confirmPassword.value) {
-        showError(confirmPassword, 'Please confirm your password');
-        isValid = false;
-    } else if (password.value !== confirmPassword.value) {
-        showError(confirmPassword, 'Passwords do not match');
-        isValid = false;
-    }
-    
     if (!isValid) return;
     
-    // Show loading state
+    // Disable button during submission
     submitBtn.disabled = true;
-    btnText.classList.add('hidden');
-    btnLoader.classList.remove('hidden');
     
     // Prepare data for backend
     const formData = {
-        name: name.value.trim(),
-        email: email.value.trim(),
+        firstName: firstName.value.trim(),
+        lastName: lastName.value.trim(),
+        username: username.value.trim(),
         password: password.value
     };
     
@@ -241,7 +233,7 @@ signupForm.addEventListener('submit', async (e) => {
         // const data = await response.json();
         
         // Simulate API call for now
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 800));
         
         // Success handling
         console.log('Signup successful:', formData);
@@ -250,12 +242,10 @@ signupForm.addEventListener('submit', async (e) => {
         
     } catch (error) {
         console.error('Signup error:', error);
-        showError(email, 'An error occurred. Please try again.');
+        showError(username, 'An error occurred. Please try again.');
     } finally {
         // Reset button state
         submitBtn.disabled = false;
-        btnText.classList.remove('hidden');
-        btnLoader.classList.add('hidden');
     }
 });
 

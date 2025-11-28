@@ -23,19 +23,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background:
-        radial-gradient(
-            circle at 50% 30%,
-            rgba(255, 255, 255, 0.45) 0%,
-            rgba(218, 231, 244, 0.7) 40%,
-            rgba(13, 109, 208, 0.95) 100%
-        ),
-        linear-gradient(
-            135deg,
-            #0D6DD0 0%,
-            #DAE7F4 100%
-        );
-
+    background: linear-gradient(135deg, #E3F2FD 0%, #FAFAFA 50%, #BBDEFB 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -44,7 +32,6 @@ body {
     position: relative;
     overflow: hidden;
 }
-
 
 /* Subtle Background Pattern */
 body::before {
@@ -74,18 +61,18 @@ body::before {
     z-index: 1;
 }
 
-/* Glassmorphism Card — UPDATED (Step 1, 6, 7) */
+/* Glassmorphism Card */
 .auth-card {
     background: var(--glass-white);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.6); /* Step 7 */
-    padding: 50px 40px 55px; /* Step 1: more breathing room */
-    box-shadow:
-        0 4px 18px rgba(0, 0, 0, 0.06),       /* Step 6 */
-        0 12px 48px rgba(30, 136, 229, 0.08), /* Step 6 */
+    border: 1px solid var(--glass-border);
+    box-shadow: 
+        0 8px 32px rgba(11, 83, 148, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.05),
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    padding: 40px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -97,32 +84,13 @@ body::before {
         inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-/* Titles — UPDATED (Step 2) */
-.main-title {
-    font-family: "Noto Serif", serif;
-    font-size: 30px; /* was 32 */
-    font-weight: 700;
-    letter-spacing: -0.4px;
+
+
+
+/* Center subtitle */
+.centered {
     text-align: center;
-    color: #0B1A33;
-    line-height: 1.22; /* brings lines closer */
-    margin-bottom: 8px;
-}
-
-/* optional: reduce width stretching on very long Greek words */
-.main-title span.greek {
-    font-size: 28px; /* slightly smaller than "Welcome to" */
-    display: block;
-}
-
-
-
-.main-subtitle {
-    text-align: center;
-    font-size: 15px;
-    font-weight: 400;
-    opacity: 0.65;
-    margin-top: 4px;
+    margin-top: -5px;
     margin-bottom: 20px;
 }
 
@@ -147,88 +115,52 @@ body::before {
     }
 }
 
-/* Input Fields — UPDATED (Step 3) */
+/* Input Groups */
 .input-group {
-    margin-bottom: 16px;
+    margin-bottom: 16px; /* FIXED SPACING */
+}
+
+.input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 8px;
 }
 
 .input-group input {
     width: 100%;
     padding: 14px 16px;
     border: 2px solid rgba(30, 136, 229, 0.2);
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 15px;
     color: var(--text-dark);
     background: rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease;
     outline: none;
-
-    box-shadow: 
-        0 1px 2px rgba(0, 0, 0, 0.06),
-        0 0 0 3px rgba(30, 136, 229, 0); /* Step 3 base */
 }
 
-.input-group input:focus {
-    border-color: var(--aegean-blue);
-    background: var(--pure-white);
-    box-shadow: 
-        0 0 0 3px rgba(30, 136, 229, 0.18), /* Step 3 focus */
-        0 4px 12px rgba(30, 136, 229, 0.08);
-}
-
-/* Footer links inline (unchanged) */
+/* Footer links inline */
 .footer-links {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin-top: 14px;
+    margin-top: 10px;
 }
 
 .footer-links a {
     font-size: 14px;
     font-weight: 500;
-    color: #1E88E5; /* Step 5 improved color */
-    opacity: 0.85;
+    color: var(--aegean-blue);
+    text-decoration: none;
 }
 
 .footer-links a:hover {
-    opacity: 1;
+    color: var(--aegean-deep);
+    text-decoration: underline;
 }
 
-/* =========================
-   SUBMIT BUTTON — UPDATED (Step 4)
-   ========================= */
-.submit-btn {
-    width: 100%;
-    margin-top: 28px;
-    padding: 15px;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #2196F3, #0B5394);
-    color: white;
-    font-weight: 600;
-    font-size: 17px;
-    cursor: pointer;
-    box-shadow: 
-        0 8px 24px rgba(30, 136, 229, 0.3),
-        0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.25s ease;
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.06);
-    box-shadow: 
-        0 12px 32px rgba(30, 136, 229, 0.45),
-        0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-.submit-btn:active {
-    transform: translateY(0);
-}
-
-.btn-text {
-    position: relative;
-    z-index: 1;
+.separator {
+    opacity: 0.5;
 }
