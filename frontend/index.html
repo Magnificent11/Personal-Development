@@ -1,30 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyLife Dashboard</title>
-
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Icons -->
-    <link 
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-
-    <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="./styles/main.css">
 </head>
-
-<body class="dark">
+<body class="dashboard">
     <div class="app-shell">
-
-        <!-- SIDEBAR -->
+        <!-- Sidebar -->
         <aside class="sidebar glass-panel" id="sidebar">
-
             <div class="sidebar-top">
-
                 <div class="profile">
                     <div class="avatar"><span>P</span></div>
                     <div class="profile-info">
@@ -37,12 +25,10 @@
                         <i class="fa-solid fa-wallet"></i>
                         <span class="nav-label">Finance</span>
                     </button>
-
                     <button class="nav-item" data-tab="health">
                         <i class="fa-solid fa-heart-pulse"></i>
                         <span class="nav-label">Health</span>
                     </button>
-
                     <button class="nav-item" data-tab="goals">
                         <i class="fa-solid fa-bullseye"></i>
                         <span class="nav-label">Goals</span>
@@ -50,40 +36,32 @@
                 </nav>
             </div>
 
-            <!-- BOTTOM SECTION -->
             <div class="sidebar-bottom">
                 <button class="nav-item" data-tab="settings">
                     <i class="fa-solid fa-gear"></i>
                     <span class="nav-label">Settings</span>
                 </button>
-
                 <button class="nav-item nav-logout" id="logoutBtn">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span class="nav-label">Logout</span>
                 </button>
             </div>
-
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- Main Content -->
         <main class="main-content">
-
             <header class="main-header">
                 <div>
-                    <h1>Finance Overview</h1>
-                    <p>Track your money, reduce stress, and grow your future self.</p>
+                    <h1 class="page-title">Finance Overview</h1>
+                    <p class="page-subtitle">Track your money, reduce stress, and grow your future self.</p>
                 </div>
             </header>
 
-            <!-- FINANCE TAB -->
             <section class="tab-panel active" id="tab-finance">
                 <div class="finance-layout">
-
                     <section class="graph-panel glass-panel">
-
                         <div class="graph-header">
                             <h2>Cashflow Trends</h2>
-
                             <div class="graph-filters">
                                 <button class="filter-btn active" data-range="day">Day</button>
                                 <button class="filter-btn" data-range="week">Week</button>
@@ -91,7 +69,6 @@
                                 <button class="filter-btn" data-range="year">Year</button>
                             </div>
                         </div>
-
                         <div class="graph-body">
                             <canvas id="financeChart"></canvas>
                         </div>
@@ -100,7 +77,6 @@
                     <div class="vertical-divider"></div>
 
                     <aside class="summary-column">
-
                         <article class="summary-card glass-panel card-checking">
                             <div class="card-header">
                                 <span class="color-pill pill-checking"></span>
@@ -136,12 +112,9 @@
                             <p class="card-balance">$540.90</p>
                             <p class="card-sub">Pay by Dec 12</p>
                         </article>
-
                     </aside>
-
                 </div>
             </section>
-
         </main>
     </div>
 
