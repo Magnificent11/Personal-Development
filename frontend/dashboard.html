@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Personal Development</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Personal Dev</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <span class="icon">📊</span>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-section="goals">
+                <span class="icon">🎯</span>
+                <span>Goals</span>
+            </a>
+            <a href="#" class="nav-item" data-section="habits">
+                <span class="icon">✅</span>
+                <span>Habits</span>
+            </a>
+            <a href="#" class="nav-item" data-section="journal">
+                <span class="icon">📝</span>
+                <span>Journal</span>
+            </a>
+            <a href="#" class="nav-item" data-section="progress">
+                <span class="icon">📈</span>
+                <span>Progress</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar"></div>
+                <div class="user-info">
+                    <p class="user-name" id="sidebarUserName">Loading...</p>
+                    <p class="user-email" id="sidebarUsername">@username</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">
+                <span class="icon">🚪</span>
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 id="pageTitle">Overview</h1>
+                <p id="pageSubtitle">Welcome back! Here's your progress today.</p>
+            </div>
+            <div class="header-right">
+                <div class="date-display">
+                    <span class="icon">📅</span>
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Overview Section -->
+        <section id="overview" class="content-section active">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-info">
+                        <h3 id="activeGoals">0</h3>
+                        <p>Active Goals</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <h3 id="habitsCompleted">0</h3>
+                        <p>Habits Today</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-info">
+                        <h3 id="currentStreak">0</h3>
+                        <p>Day Streak</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-info">
+                        <h3 id="journalEntries">0</h3>
+                        <p>Journal Entries</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section-header">
+                <h2>Quick Actions</h2>
+            </div>
+            <div class="quick-actions">
+                <button class="action-card" onclick="switchSection('goals')">
+                    <span class="action-icon">🎯</span>
+                    <span class="action-text">Add Goal</span>
+                </button>
+                <button class="action-card" onclick="switchSection('habits')">
+                    <span class="action-icon">✅</span>
+                    <span class="action-text">Track Habit</span>
+                </button>
+                <button class="action-card" onclick="switchSection('journal')">
+                    <span class="action-icon">📝</span>
+                    <span class="action-text">Write Journal</span>
+                </button>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="section-header">
+                <h2>Recent Activity</h2>
+            </div>
+            <div class="activity-feed">
+                <div class="activity-item">
+                    <div class="activity-icon">🎯</div>
+                    <div class="activity-content">
+                        <p class="activity-text">No recent activity yet</p>
+                        <p class="activity-time">Start tracking your progress!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Goals Section -->
+        <section id="goals" class="content-section">
+            <div class="section-header">
+                <h2>My Goals</h2>
+                <button class="btn-primary" onclick="openGoalModal()">+ Add New Goal</button>
+            </div>
+            <div class="goals-grid" id="goalsGrid">
+                <div class="empty-state">
+                    <span class="empty-icon">🎯</span>
+                    <p>No goals yet. Create your first goal!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Habits Section -->
+        <section id="habits" class="content-section">
+            <div class="section-header">
+                <h2>Daily Habits</h2>
+                <button class="btn-primary" onclick="openHabitModal()">+ Add New Habit</button>
+            </div>
+            <div class="habits-list" id="habitsList">
+                <div class="empty-state">
+                    <span class="empty-icon">✅</span>
+                    <p>No habits yet. Start building good habits!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Journal Section -->
+        <section id="journal" class="content-section">
+            <div class="section-header">
+                <h2>Journal Entries</h2>
+                <button class="btn-primary" onclick="openJournalModal()">+ New Entry</button>
+            </div>
+            <div class="journal-list" id="journalList">
+                <div class="empty-state">
+                    <span class="empty-icon">📝</span>
+                    <p>No journal entries yet. Start writing!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section id="progress" class="content-section">
+            <div class="section-header">
+                <h2>Your Progress</h2>
+            </div>
+            <div class="progress-overview">
+                <div class="progress-card">
+                    <h3>Goal Completion Rate</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <p class="progress-text">0% Complete</p>
+                </div>
+                <div class="progress-card">
+                    <h3>Weekly Habit Consistency</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <p class="progress-text">0% This Week</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Goal Modal -->
+    <div id="goalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Goal</h2>
+                <span class="close" onclick="closeGoalModal()">&times;</span>
+            </div>
+            <form onsubmit="handleAddGoal(event)">
+                <div class="form-group">
+                    <label for="goalTitle">Goal Title</label>
+                    <input type="text" id="goalTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="goalDescription">Description</label>
+                    <textarea id="goalDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="goalDeadline">Target Date</label>
+                    <input type="date" id="goalDeadline" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeGoalModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Habit Modal -->
+    <div id="habitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Habit</h2>
+                <span class="close" onclick="closeHabitModal()">&times;</span>
+            </div>
+            <form onsubmit="handleAddHabit(event)">
+                <div class="form-group">
+                    <label for="habitName">Habit Name</label>
+                    <input type="text" id="habitName" required>
+                </div>
+                <div class="form-group">
+                    <label for="habitFrequency">Frequency</label>
+                    <select id="habitFrequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeHabitModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Habit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Journal Modal -->
+    <div id="journalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Journal Entry</h2>
+                <span class="close" onclick="closeJournalModal()">&times;</span>
+            </div>
+            <form onsubmit="handleAddJournal(event)">
+                <div class="form-group">
+                    <label for="journalTitle">Title</label>
+                    <input type="text" id="journalTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="journalContent">Content</label>
+                    <textarea id="journalContent" rows="8" required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeJournalModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

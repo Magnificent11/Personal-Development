@@ -1,0 +1,512 @@
+/* ─── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ─── THEME VARIABLES ───────────────────────────────────── */
+:root {
+    --gold:         #f0b429;
+    --gold-light:   #f6da6b;
+    --gold-dim:     rgba(240, 180, 41, 0.18);
+    --gold-border:  rgba(212, 160, 23, 0.2);
+    --gold-glow:    rgba(212, 160, 23, 0.08);
+
+    --glass-bg:     rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(212, 160, 23, 0.12);
+
+    --text-primary:   rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.4);
+    --text-muted:     rgba(255, 255, 255, 0.2);
+
+    --cell-size: 64px;
+}
+
+/* ─── BODY ──────────────────────────────────────────────── */
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 60px;
+    background: #080808;
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+/* ─── BACKGROUND ORBS ───────────────────────────────────── */
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); }
+.orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #92400e, transparent 70%);
+    top: -150px; left: -100px; opacity: 0.5;
+    animation: drift1 18s ease-in-out infinite;
+}
+.orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, #78350f, transparent 70%);
+    bottom: -100px; right: -80px; opacity: 0.4;
+    animation: drift2 22s ease-in-out infinite;
+}
+@keyframes drift1 {
+    0%,100% { transform: translate(0,0); }
+    33%      { transform: translate(40px,30px); }
+    66%      { transform: translate(-20px,50px); }
+}
+@keyframes drift2 {
+    0%,100% { transform: translate(0,0); }
+    33%      { transform: translate(-30px,-40px); }
+    66%      { transform: translate(20px,-20px); }
+}
+
+/* ─── OUTER WRAPPER ─────────────────────────────────────── */
+.app-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1100px;
+}
+
+/* ─── LOGO / TITLE ──────────────────────────────────────── */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+.logo-icon {
+    width: 36px; height: 36px;
+    background: var(--gold-dim);
+    border: 1px solid var(--gold-border);
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+.logo h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ─── MAIN GLASS CARD ───────────────────────────────────── */
+.card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 40px 80px rgba(0,0,0,0.7),
+        0 0 80px var(--gold-glow);
+    overflow: hidden;
+}
+
+/* ─── GRID LAYOUT ───────────────────────────────────────── */
+.tracker-layout {
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    min-height: 0;
+}
+
+/* ─── SHARED PANEL STYLES ───────────────────────────────── */
+.panel-left,
+.panel-center,
+.panel-right {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ─── LEFT PANEL ────────────────────────────────────────── */
+.panel-left {
+    border-right: 1px solid var(--glass-border);
+}
+
+.panel-left .header-cell {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--glass-border);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.habit-name-cell {
+    padding: 0 16px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    gap: 8px;
+    cursor: default;
+    transition: background 0.15s;
+}
+.habit-name-cell:hover { background: rgba(255,255,255,0.03); }
+
+.habit-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.add-habit-cell {
+    padding: 0 16px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.15s;
+    border-top: 1px solid var(--glass-border);
+}
+.add-habit-cell:hover { color: var(--gold); }
+.add-habit-cell svg { opacity: 0.6; }
+
+.count-label-cell {
+    padding: 0 16px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* ─── CENTER PANEL ───────────────────────────────────────── */
+.panel-center {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold-border) transparent;
+}
+.panel-center::-webkit-scrollbar { height: 4px; }
+.panel-center::-webkit-scrollbar-track { background: transparent; }
+.panel-center::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 4px; }
+
+.days-grid {
+    display: grid;
+    width: 100%;
+}
+
+.days-header-row { display: contents; }
+
+.day-header {
+    height: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 11px;
+    color: var(--text-secondary);
+    gap: 4px;
+}
+.day-header .day-name {
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.day-header .day-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+}
+.day-header.today { background: var(--gold-dim); }
+.day-header.today .day-date { color: var(--gold); }
+
+.habit-row { display: contents; }
+
+.day-cell {
+    height: 56px;
+    border-bottom: 1px solid var(--glass-border);
+    position: relative;
+    cursor: pointer;
+    transition: filter 0.1s;
+}
+.day-cell:hover { filter: brightness(1.3); }
+
+.day-cell .cell-fill {
+    position: absolute;
+    inset: 4px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.day-cell.checked .cell-fill { opacity: 1; }
+.day-cell.empty   .cell-fill { opacity: 0.08; }
+
+.count-cell {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--glass-border);
+}
+
+.add-row-spacer { display: contents; }
+.add-row-cell {
+    height: 44px;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* ─── RIGHT PANEL (weekly progress) ─────────────────────── */
+.panel-right {
+    border-left: 1px solid var(--glass-border);
+    min-width: 280px;
+}
+
+.stats-header-row {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--glass-border);
+}
+.stats-header-cell {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.progress-row {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.progress-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.3s ease;
+}
+
+.progress-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    min-width: 28px;
+    text-align: right;
+}
+
+.progress-footer {
+    height: 44px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.progress-count-footer {
+    height: 40px;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* ─── NEW HABIT MODAL ───────────────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal {
+    background: #111;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 340px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.8), 0 0 40px var(--gold-glow);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-field label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.modal-field input[type="text"] {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+}
+.modal-field input[type="text"]:focus {
+    border-color: var(--gold-border);
+}
+
+/* Color picker swatches */
+.color-swatches {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.swatch {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+}
+.swatch:hover { transform: scale(1.15); }
+.swatch.selected {
+    border-color: white;
+    transform: scale(1.15);
+}
+
+/* Modal buttons */
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    border: none;
+}
+
+.btn-cancel {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-secondary);
+}
+.btn-cancel:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+
+.btn-add {
+    background: var(--gold-dim);
+    color: var(--gold);
+    border: 1px solid var(--gold-border);
+}
+.btn-add:hover { background: var(--gold); color: #000; }
+
+/* ─── NAV ARROWS ────────────────────────────────────────── */
+.nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.nav-row .week-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold-light);
+}
+.nav-btn {
+    background: none;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    font-size: 14px;
+}
+.nav-btn:hover { background: var(--gold-dim); color: var(--gold); border-color: var(--gold-border); }
+
+/* ─── MODAL ACTIONS SPREAD (edit modal) ─────────────────── */
+.modal-actions--spread {
+    justify-content: space-between;
+}
+.modal-actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+/* ─── DELETE BUTTON ─────────────────────────────────────── */
+.btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.btn-delete:hover {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+/* ─── HABIT NAME CELL CLICKABLE CUE ─────────────────────── */
+.habit-name-cell {
+    cursor: pointer;
+}
+.habit-name-cell:hover .habit-edit-icon {
+    opacity: 1;
+}
+.habit-edit-icon {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.15s;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}

@@ -5,7 +5,22 @@ const jwt = require("jsonwebtoken");
 // Register new user
 exports.register = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, firstName, lastName } = req.body;
+    
+    // Validate required fields
+    if (!username || !password || !firstName || !lastName) {
+      return res.status(400).json({ 
+        error: "All fields are required" 
+      });
+    }
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(409).json({ 
+        error: "Username already exists" 
+      });
+    }
     
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -14,15 +29,41 @@ exports.register = async (req, res) => {
     const newUser = await User.create({
       username,
       password: hashedPassword,
+      firstName,
+      lastName
     });
     
-    res.json({ 
-      message: "User registered", 
-      user: { id: newUser._id, username: newUser.username } 
+    res.status(201).json({ 
+      message: "User registered successfully", 
+      user: { 
+        id: newUser._id, 
+        username: newUser.username,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName
+      } 
     });
   } catch (error) {
     console.error("Registration error:", error);
-    res.status(500).json({ error: "Registration failed", details: error });
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: "Validation failed", 
+        details: error.message 
+      });
+    }
+    
+    // Handle duplicate key error
+    if (error.code === 11000) {
+      return res.status(409).json({ 
+        error: "Username already exists" 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: "Registration failed", 
+      details: error.message 
+    });
   }
 };
 
@@ -30,6 +71,13 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    
+    // Validate required fields
+    if (!username || !password) {
+      return res.status(400).json({ 
+        error: "Username and password are required" 
+      });
+    }
     
     // Find user
     const existingUser = await User.findOne({ username });
@@ -45,14 +93,20 @@ exports.login = async (req, res) => {
     
     // Create access token (short-lived: 15 minutes)
     const accessToken = jwt.sign(
-      { id: existingUser._id, username: existingUser.username },
+      { 
+        id: existingUser._id, 
+        username: existingUser.username 
+      },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
     
     // Create refresh token (long-lived: 7 days)
     const refreshToken = jwt.sign(
-      { id: existingUser._id, username: existingUser.username },
+      { 
+        id: existingUser._id, 
+        username: existingUser.username 
+      },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
@@ -68,11 +122,16 @@ exports.login = async (req, res) => {
       user: {
         id: existingUser._id,
         username: existingUser.username,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName
       },
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Login failed", details: error });
+    res.status(500).json({ 
+      error: "Login failed", 
+      details: error.message 
+    });
   }
 };
 
@@ -131,6 +190,9 @@ exports.logout = async (req, res) => {
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout error:", error);
-    res.status(500).json({ error: "Logout failed" });
+    res.status(500).json({ 
+      error: "Logout failed",
+      details: error.message 
+    });
   }
 };

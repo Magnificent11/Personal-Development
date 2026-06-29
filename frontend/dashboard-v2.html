@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker – Dashboard v2</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard-v2.css">
+</head>
+<body>
+
+<!-- Background orbs -->
+<div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+</div>
+
+<div class="app-wrapper">
+
+    <!-- Logo -->
+    <div class="logo">
+        <div class="logo-icon"></div>
+        <h1>Habit Tracker</h1>
+    </div>
+
+    <!-- Card -->
+    <div class="card">
+
+        <!-- Week nav bar -->
+        <div class="nav-row">
+            <button class="nav-btn" id="prev-btn">&#8249;</button>
+            <span class="week-label" id="week-label"></span>
+            <button class="nav-btn" id="next-btn">&#8250;</button>
+        </div>
+
+        <!-- 3-column layout -->
+        <div class="tracker-layout" id="tracker-layout">
+
+            <!-- LEFT: habit names -->
+            <div class="panel-left" id="panel-left">
+                <div class="header-cell">Habits</div>
+                <!-- habit name cells injected by JS -->
+            </div>
+
+            <!-- CENTER: day grid -->
+            <div class="panel-center" id="panel-center">
+                <div class="days-grid" id="days-grid">
+                    <!-- day headers + habit rows injected by JS -->
+                </div>
+            </div>
+
+            <!-- RIGHT: weekly progress -->
+            <div class="panel-right" id="panel-right">
+                <div class="stats-header-row">
+                    <div class="stats-header-cell">Weekly Progress</div>
+                </div>
+                <!-- progress rows injected by JS -->
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ── ADD HABIT MODAL ───────────────────────────────────── -->
+<div class="modal-overlay" id="add-modal-overlay">
+    <div class="modal">
+        <h2>New Habit</h2>
+
+        <div class="modal-field">
+            <label for="add-name-input">Name</label>
+            <input type="text" id="add-name-input" placeholder="e.g. Meditate" maxlength="32">
+        </div>
+
+        <div class="modal-field">
+            <label>Color</label>
+            <div class="color-swatches" id="add-color-swatches">
+                <!-- swatches injected by JS -->
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="add-modal-cancel">Cancel</button>
+            <button class="btn btn-add" id="add-modal-confirm">Add Habit</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── EDIT HABIT MODAL ──────────────────────────────────── -->
+<div class="modal-overlay" id="edit-modal-overlay">
+    <div class="modal">
+        <h2>Edit Habit</h2>
+
+        <div class="modal-field">
+            <label for="edit-name-input">Name</label>
+            <input type="text" id="edit-name-input" placeholder="Habit name" maxlength="32">
+        </div>
+
+        <div class="modal-field">
+            <label>Color</label>
+            <div class="color-swatches" id="edit-color-swatches">
+                <!-- swatches injected by JS -->
+            </div>
+        </div>
+
+        <div class="modal-actions modal-actions--spread">
+            <button class="btn btn-delete" id="edit-modal-delete">Delete</button>
+            <div class="modal-actions-right">
+                <button class="btn btn-cancel" id="edit-modal-cancel">Cancel</button>
+                <button class="btn btn-add" id="edit-modal-confirm">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="dashboard-v2.js"></script>
+
+</body>
+</html>
