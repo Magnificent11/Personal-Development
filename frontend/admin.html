@@ -70,7 +70,33 @@
     <!-- Stats row -->
     <div class="card admin-stats-card">
         <div class="admin-stats-grid" id="admin-stats-grid">
-            <!-- stat blocks injected by JS -->
+            <!-- user stat blocks injected by JS -->
+        </div>
+    </div>
+
+    <!-- User Growth chart -->
+    <div class="card admin-growth-card">
+        <div class="admin-growth-header">
+            <span class="monthly-title">User Growth</span>
+            <div class="admin-growth-controls">
+                <div class="admin-toggle-group" id="admin-growth-view-toggle">
+                    <button type="button" class="admin-toggle-btn active" data-view="cumulative">Cumulative</button>
+                    <button type="button" class="admin-toggle-btn" data-view="new">New Signups</button>
+                </div>
+                <select id="admin-growth-range-select" class="admin-filter-select">
+                    <option value="all" selected>All Time</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="12w">Last 12 Weeks</option>
+                </select>
+                <div class="admin-toggle-group" id="admin-growth-chart-type-toggle">
+                    <button type="button" class="admin-toggle-btn active" data-chart-type="line">Line</button>
+                    <button type="button" class="admin-toggle-btn" data-chart-type="bar">Bar</button>
+                </div>
+            </div>
+        </div>
+        <div class="admin-growth-summary" id="admin-growth-summary"></div>
+        <div class="admin-growth-chart-wrap">
+            <svg id="admin-growth-chart" class="admin-growth-chart" viewBox="0 0 800 220" preserveAspectRatio="none"></svg>
         </div>
     </div>
 
@@ -79,15 +105,54 @@
         <div class="admin-users-header">
             <span class="monthly-title">Users</span>
         </div>
+
+        <!-- Search / filter toolbar -->
+        <div class="admin-toolbar">
+            <div class="admin-search-wrap">
+                <svg class="admin-search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="M9.5 9.5L13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+                <input type="text" id="admin-search-input" class="admin-search-input" placeholder="Search username or name…" autocomplete="off">
+            </div>
+
+            <select id="admin-role-filter" class="admin-filter-select">
+                <option value="all">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+            </select>
+
+            <select id="admin-status-filter" class="admin-filter-select">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="banned">Banned</option>
+            </select>
+
+            <button type="button" class="admin-select-toggle-btn" id="admin-select-toggle-btn">Select</button>
+            <span class="admin-results-count" id="admin-results-count"></span>
+        </div>
+
+        <!-- Bulk action bar (shown once 1+ rows are selected) -->
+        <div class="admin-bulk-bar" id="admin-bulk-bar">
+            <span class="admin-bulk-bar-text" id="admin-bulk-bar-text">0 selected</span>
+            <div class="admin-bulk-bar-actions">
+                <button class="admin-bulk-clear-btn" id="admin-bulk-clear-btn">Clear selection</button>
+                <button class="admin-bulk-delete-btn" id="admin-bulk-delete-btn">Delete Selected</button>
+            </div>
+        </div>
+
         <div class="admin-table-wrap">
-            <table class="admin-table">
+            <table class="admin-table" id="admin-users-table">
                 <thead>
                     <tr>
-                        <th>Username</th>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Joined</th>
+                        <th class="admin-checkbox-col select-mode-only">
+                            <input type="checkbox" id="admin-select-all-checkbox" class="admin-select-all-checkbox" title="Select all matching users">
+                        </th>
+                        <th class="sortable" data-sort="username">Username <span class="sort-arrow"></span></th>
+                        <th class="sortable" data-sort="name">Name <span class="sort-arrow"></span></th>
+                        <th class="sortable" data-sort="role">Role <span class="sort-arrow"></span></th>
+                        <th class="sortable" data-sort="status">Status <span class="sort-arrow"></span></th>
+                        <th class="sortable" data-sort="joined">Joined <span class="sort-arrow"></span></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -95,6 +160,52 @@
                     <!-- rows injected by JS -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="admin-pagination">
+            <div class="admin-pagesize-wrap">
+                <label for="admin-pagesize-select">Rows per page</label>
+                <select id="admin-pagesize-select" class="admin-filter-select">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            <div class="admin-pagination-controls" id="admin-pagination-controls">
+                <!-- Prev / page numbers / Next injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit / activity log -->
+    <div class="card admin-audit-card">
+        <div class="admin-users-header">
+            <span class="monthly-title">Activity Log</span>
+        </div>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table" id="admin-audit-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Admin</th>
+                        <th>Action</th>
+                        <th>Target</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-audit-body">
+                    <!-- rows injected by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="admin-pagination">
+            <span class="admin-results-count" id="admin-audit-count"></span>
+            <div class="admin-pagination-controls" id="admin-audit-pagination-controls">
+                <!-- Prev / page numbers / Next injected by JS -->
+            </div>
         </div>
     </div>
 
@@ -111,6 +222,33 @@
 
         <div class="modal-actions">
             <button class="btn btn-cancel" id="view-habits-close">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── BULK DELETE CONFIRMATION MODAL ────────────────────── -->
+<div class="modal-overlay" id="bulk-delete-modal-overlay">
+    <div class="modal bulk-delete-modal">
+        <h2 id="bulk-delete-title">Delete Users</h2>
+
+        <p class="bulk-delete-warning" id="bulk-delete-warning">
+            This will permanently remove these accounts and all their habits. This cannot be undone.
+        </p>
+
+        <div class="bulk-delete-list" id="bulk-delete-list">
+            <!-- selected user rows injected by JS -->
+        </div>
+
+        <label class="bulk-delete-confirm-label" for="bulk-delete-confirm-input" id="bulk-delete-confirm-label">
+            Type DELETE to confirm
+        </label>
+        <input type="text" id="bulk-delete-confirm-input" class="bulk-delete-confirm-input" autocomplete="off" placeholder="DELETE">
+
+        <p class="bulk-delete-progress" id="bulk-delete-progress"></p>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="bulk-delete-cancel">Cancel</button>
+            <button class="admin-bulk-delete-btn" id="bulk-delete-confirm-btn" disabled>Delete</button>
         </div>
     </div>
 </div>

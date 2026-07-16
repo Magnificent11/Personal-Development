@@ -125,6 +125,9 @@ exports.login = async (req, res) => {
     
     // Save refresh token to database
     existingUser.refreshToken = refreshToken;
+    // Mark them online right away — no need to wait for the first
+    // heartbeat interval to tick before they show up as active.
+    existingUser.lastSeen = new Date();
     await existingUser.save();
     
     res.json({
@@ -213,5 +216,19 @@ exports.logout = async (req, res) => {
       error: "Logout failed",
       details: error.message 
     });
+  }
+};
+
+// Heartbeat — called periodically by a logged-in user's browser (while a
+// tab is open) purely to update lastSeen. Used by the admin dashboard to
+// derive an online/offline indicator; nothing else reads this field.
+// Deliberately minimal: no body, no side effects besides the timestamp.
+exports.heartbeat = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { lastSeen: new Date() });
+    res.json({ message: "ok" });
+  } catch (error) {
+    console.error("Heartbeat error:", error);
+    res.status(500).json({ error: "Heartbeat failed" });
   }
 };

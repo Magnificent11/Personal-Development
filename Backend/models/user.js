@@ -45,6 +45,14 @@ const userSchema = new mongoose.Schema({
     default: 80,
     min: 1,
     max: 100
+  },
+  // Updated by the heartbeat endpoint every time a logged-in user's tab
+  // pings the server. Used by the admin dashboard to derive a live
+  // online/offline indicator — not exposed anywhere in the regular
+  // user-facing app itself.
+  lastSeen: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt fields

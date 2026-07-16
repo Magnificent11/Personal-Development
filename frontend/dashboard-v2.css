@@ -235,7 +235,7 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
 /* ─── GRID LAYOUT ───────────────────────────────────────── */
 .tracker-layout {
     display: grid;
-    grid-template-columns: 220px 1fr auto;
+    grid-template-columns: 220px 1fr 200px;
     align-items: start;
 }
 
@@ -448,7 +448,7 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
 /* ─── RIGHT PANEL (weekly progress) ─────────────────────── */
 .panel-right {
     border-left: 1px solid var(--glass-border);
-    min-width: 280px;
+    min-width: 0;
 }
 
 .stats-header-row {
@@ -474,8 +474,8 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
     height: 56px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 0 24px;
+    gap: 8px;
+    padding: 0 14px;
     border-bottom: 1px solid var(--glass-border);
 }
 
@@ -498,7 +498,7 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
     font-weight: 500;
     color: var(--text-secondary);
     white-space: nowrap;
-    min-width: 28px;
+    min-width: 22px;
     text-align: right;
 }
 

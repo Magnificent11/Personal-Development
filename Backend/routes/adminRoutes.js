@@ -14,5 +14,6 @@ router.get('/users/:id/habits', adminController.getUserHabits);
 router.put('/users/:id/role', adminController.updateUserRole);
 router.put('/users/:id/ban', adminController.setUserActive);
 router.delete('/users/:id', adminController.deleteUser);
+router.get('/audit-log', adminController.getAuditLog);
 
 module.exports = router;

@@ -1,5 +1,26 @@
 const User = require("../models/user");
 const Habit = require("../models/habit");
+const AuditLog = require("../models/auditLog");
+
+// The JWT payload (req.user, set by authMiddleware) isn't guaranteed to
+// carry a username depending on what was signed at login — fall back to a
+// DB lookup so audit entries never end up attributed to "undefined".
+async function getActorUsername(req) {
+  if (req.user.username) return req.user.username;
+  const actor = await User.findById(req.user.id).select("username");
+  return actor ? actor.username : "unknown";
+}
+
+// Writes an audit log entry without ever letting a logging failure break
+// the admin action it's attached to — the action has already succeeded
+// by the time this is called, so at worst we log the error and move on.
+async function recordAuditLog(entry) {
+  try {
+    await AuditLog.create(entry);
+  } catch (error) {
+    console.error("Audit log error:", error);
+  }
+}
 
 // GET /api/admin/users
 exports.getAllUsers = async (req, res) => {
@@ -39,6 +60,10 @@ exports.updateUserRole = async (req, res) => {
       return res.status(400).json({ error: "You cannot change your own admin role" });
     }
 
+    const previousUser = await User.findById(req.params.id).select("role");
+    if (!previousUser) return res.status(404).json({ error: "User not found" });
+    const previousRole = previousUser.role;
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { role },
@@ -46,6 +71,18 @@ exports.updateUserRole = async (req, res) => {
     ).select("-password -refreshToken");
 
     if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (previousRole !== role) {
+      await recordAuditLog({
+        actorId: req.user.id,
+        actorUsername: await getActorUsername(req),
+        action: "role_change",
+        targetId: user._id,
+        targetUsername: user.username,
+        details: `${previousRole} \u2192 ${role}`
+      });
+    }
+
     res.json({ message: "Role updated", user });
   } catch (error) {
     console.error("updateUserRole error:", error);
@@ -72,6 +109,15 @@ exports.setUserActive = async (req, res) => {
     ).select("-password -refreshToken");
 
     if (!user) return res.status(404).json({ error: "User not found" });
+
+    await recordAuditLog({
+      actorId: req.user.id,
+      actorUsername: await getActorUsername(req),
+      action: isActive ? "unban" : "ban",
+      targetId: user._id,
+      targetUsername: user.username
+    });
+
     res.json({ message: isActive ? "User reactivated" : "User banned", user });
   } catch (error) {
     console.error("setUserActive error:", error);
@@ -90,7 +136,16 @@ exports.deleteUser = async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     // Clean up their habits too
-    await Habit.deleteMany({ userId: req.params.id });
+    const { deletedCount } = await Habit.deleteMany({ userId: req.params.id });
+
+    await recordAuditLog({
+      actorId: req.user.id,
+      actorUsername: await getActorUsername(req),
+      action: "delete",
+      targetId: user._id,
+      targetUsername: user.username,
+      details: `${deletedCount} habit${deletedCount === 1 ? "" : "s"} removed`
+    });
 
     res.json({ message: "User and their habits deleted" });
   } catch (error) {
@@ -156,5 +211,29 @@ exports.getUserHabits = async (req, res) => {
   } catch (error) {
     console.error("getUserHabits error:", error);
     res.status(500).json({ error: "Failed to fetch user's habits" });
+  }
+};
+
+// GET /api/admin/audit-log?page=1&limit=20
+exports.getAuditLog = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+      AuditLog.countDocuments()
+    ]);
+
+    res.json({
+      logs,
+      total,
+      page,
+      totalPages: Math.max(1, Math.ceil(total / limit))
+    });
+  } catch (error) {
+    console.error("getAuditLog error:", error);
+    res.status(500).json({ error: "Failed to fetch audit log" });
   }
 };

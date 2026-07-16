@@ -7,7 +7,7 @@
 
 .admin-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 16px;
 }
 
@@ -42,18 +42,193 @@
     width: 100%;
 }
 
+/* ── User Growth chart card ──────────────────────────────── */
+
+.admin-growth-card {
+    margin-top: 24px;
+    padding: 24px 28px;
+    width: 100%;
+}
+
+.admin-growth-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.admin-growth-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-growth-controls .admin-filter-select {
+    padding: 6px 26px 6px 10px;
+}
+
+.admin-toggle-group {
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+    padding: 2px;
+    gap: 2px;
+}
+
+.admin-toggle-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+
+.admin-toggle-btn:hover:not(.active) {
+    color: var(--text-primary);
+}
+
+.admin-toggle-btn.active {
+    background: var(--gold-dim);
+    color: var(--gold);
+}
+
+.admin-growth-summary {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.admin-growth-chart-wrap {
+    width: 100%;
+}
+
+.admin-growth-chart {
+    width: 100%;
+    height: 220px;
+    display: block;
+}
+
 .admin-users-header {
     margin-bottom: 16px;
 }
 
+/* ── Search / filter toolbar ─────────────────────────────── */
+
+.admin-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.admin-search-wrap {
+    position: relative;
+    flex: 1 1 220px;
+    min-width: 180px;
+}
+
+.admin-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.admin-search-input {
+    width: 100%;
+    padding: 8px 12px 8px 30px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.admin-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.admin-search-input:focus {
+    border-color: var(--gold-border, var(--glass-border));
+}
+
+.admin-filter-select {
+    padding: 8px 28px 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+    /* Kill native OS chrome so the box itself matches the dark theme;
+       options are handled separately below since browsers restrict how
+       far you can style the popup list itself. */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+/* Most Chromium/Firefox browsers apply background/color rules on <option>
+   to the native popup list even though the rest of it can't be styled.
+   Both colors are hardcoded (not theme variables) since this popup is
+   always dark regardless of site theme — using var(--text-primary) here
+   made the text invisible in light mode (dark text on a dark background). */
+.admin-filter-select option {
+    background: #14110c;
+    color: #f0ece1;
+}
+
+.admin-results-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.admin-select-toggle-btn {
+    margin-left: auto;
+}
+
+/* ── Table ────────────────────────────────────────────────── */
+
 .admin-table-wrap {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 560px;
 }
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+}
+
+.admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--overlay-2, var(--overlay-1));
 }
 
 .admin-table th {
@@ -65,6 +240,26 @@
     text-transform: uppercase;
     color: var(--text-secondary);
     border-bottom: 1px solid var(--glass-border);
+}
+
+.admin-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+}
+
+.admin-table th.sortable:hover {
+    color: var(--text-primary);
+}
+
+.admin-table th.sortable.sorted {
+    color: var(--gold, var(--text-primary));
+}
+
+.admin-table th .sort-arrow {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 9px;
 }
 
 .admin-table td {
@@ -139,6 +334,103 @@
     padding: 32px;
 }
 
+/* ── Presence dot ─────────────────────────────────────────── */
+
+.presence-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-right: 7px;
+    vertical-align: middle;
+}
+
+.presence-online {
+    background: var(--success-color);
+    box-shadow: 0 0 0 3px var(--success-dim);
+}
+
+.presence-offline {
+    background: var(--text-muted);
+    opacity: 0.5;
+}
+
+/* ── Pagination ───────────────────────────────────────────── */
+
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.admin-pagesize-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-pagesize-wrap label {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.admin-pagesize-wrap .admin-filter-select {
+    padding: 6px 26px 6px 10px;
+}
+
+.admin-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.admin-page-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: 1px solid var(--glass-border);
+    background: var(--overlay-1);
+    color: var(--text-primary);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.admin-page-btn:hover:not(:disabled):not(.active) {
+    background: var(--overlay-3);
+}
+
+.admin-page-btn.active {
+    background: var(--gold-dim);
+    color: var(--gold);
+    border-color: var(--gold-border);
+}
+
+.admin-page-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.admin-page-nav {
+    padding: 0 12px;
+}
+
+.admin-page-ellipsis {
+    padding: 0 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
 .view-habits-modal {
     width: 460px;
     max-height: 80vh;
@@ -199,4 +491,319 @@
 .view-habit-sub {
     font-size: 10px;
     color: var(--text-muted);
+}
+
+/* ── Row / header select checkboxes ──────────────────────── */
+
+.admin-checkbox-col {
+    width: 34px;
+    padding-right: 0 !important;
+}
+
+.admin-row-checkbox,
+.admin-select-all-checkbox {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--gold, #c9a24b);
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.admin-row-checkbox:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.admin-table tr.selected-row td {
+    background: var(--overlay-1);
+}
+
+.admin-table tbody tr {
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+.admin-table tbody tr:hover td {
+    background: var(--overlay-1);
+}
+
+.admin-table tbody tr.selected-row:hover td {
+    background: var(--overlay-2);
+}
+
+/* Elements inside a row that have their own click behavior shouldn't
+   look like they trigger the row-level click too. */
+.admin-table tbody tr .admin-row-actions,
+.admin-table tbody tr .admin-checkbox-col {
+    cursor: default;
+}
+
+/* Checkbox column only exists visually once "Select" mode is toggled on
+   — stays in the DOM at all times so column count/colspan never shifts,
+   just hidden by default. */
+.select-mode-only {
+    display: none;
+}
+
+.admin-table.select-mode-active .select-mode-only {
+    display: table-cell;
+}
+
+/* ── Select mode toggle button ───────────────────────────── */
+
+.admin-select-toggle-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.admin-select-toggle-btn:hover {
+    background: var(--overlay-3);
+}
+
+.admin-select-toggle-btn.active {
+    background: var(--gold-dim);
+    color: var(--gold);
+    border-color: var(--gold-border);
+}
+
+/* ── Bulk action bar ──────────────────────────────────────── */
+
+.admin-bulk-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--overlay-2);
+    border: 1px solid var(--glass-border);
+}
+
+.admin-bulk-bar.visible {
+    display: flex;
+}
+
+.admin-bulk-bar-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.admin-bulk-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-bulk-clear-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    padding: 5px 8px;
+    text-decoration: underline;
+}
+
+.admin-bulk-clear-btn:hover {
+    color: var(--text-primary);
+}
+
+.admin-bulk-delete-btn {
+    padding: 6px 14px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: 1px solid var(--danger-border);
+    background: var(--danger-dim);
+    color: var(--danger-color);
+    transition: background 0.15s;
+}
+
+.admin-bulk-delete-btn:hover:not(:disabled) {
+    background: var(--danger-color);
+    color: #1a1a1a;
+}
+
+.admin-bulk-delete-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* ── Bulk delete confirmation modal ───────────────────────── */
+
+.bulk-delete-modal {
+    width: 440px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.bulk-delete-warning {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 4px;
+}
+
+.bulk-delete-list {
+    max-height: 180px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+    margin: 10px 0;
+}
+
+.bulk-delete-item {
+    font-size: 12px;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.bulk-delete-item .habit-count {
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.bulk-delete-more {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-top: 2px;
+}
+
+.bulk-delete-confirm-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    display: block;
+}
+
+.bulk-delete-confirm-input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.bulk-delete-confirm-input:focus {
+    border-color: var(--danger-border, var(--glass-border));
+}
+
+.bulk-delete-progress {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+/* ── Audit / activity log card ───────────────────────────── */
+
+.admin-audit-card {
+    margin-top: 24px;
+    padding: 24px 28px;
+    width: 100%;
+}
+
+.admin-audit-card .admin-pagination {
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.admin-audit-card .admin-results-count {
+    margin-right: auto;
+}
+
+.admin-audit-time {
+    white-space: nowrap;
+    color: var(--text-secondary);
+}
+
+.admin-audit-details {
+    color: var(--text-muted);
+}
+
+/* ── Loading skeletons & error/retry states ──────────────── */
+
+@keyframes admin-skeleton-pulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+}
+
+.admin-skeleton {
+    background: var(--overlay-2, var(--overlay-1));
+    border-radius: 6px;
+    animation: admin-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.admin-skeleton-bar {
+    display: inline-block;
+    border-radius: 4px;
+}
+
+.admin-skeleton-row td {
+    padding: 12px;
+}
+
+.admin-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 32px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+.admin-error-state.compact {
+    padding: 16px;
+}
+
+.admin-error-state .admin-error-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.admin-retry-btn {
+    padding: 6px 16px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: 1px solid var(--glass-border);
+    background: var(--overlay-1);
+    color: var(--text-primary);
+    transition: background 0.15s;
+}
+
+.admin-retry-btn:hover {
+    background: var(--overlay-3);
 }

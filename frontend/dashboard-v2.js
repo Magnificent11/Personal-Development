@@ -90,7 +90,35 @@ async function apiCall(endpoint, method = 'GET', body = null, isRetry = false) {
     }
 }
 
+/* ─── PRESENCE HEARTBEAT ─────────────────────────────────────
+   Pings the server every 60s while a logged-in user has this tab open, so
+   the admin dashboard can show a live online/offline indicator. Fire one
+   immediately on load (don't make them wait a full interval to register
+   as online), then repeat on a timer. Cleared on logout so a stale timer
+   doesn't keep firing (and erroring) after localStorage is wiped. */
+const HEARTBEAT_INTERVAL_MS = 60 * 1000;
+let heartbeatIntervalId = null;
+
+function sendHeartbeat() {
+    // Fire-and-forget — a missed heartbeat just means the admin view lags
+    // by a cycle, not worth surfacing an error to the user for.
+    apiCall('/api/auth/heartbeat', 'POST').catch(() => {});
+}
+
+function startHeartbeat() {
+    sendHeartbeat();
+    heartbeatIntervalId = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+}
+
+function stopHeartbeat() {
+    if (heartbeatIntervalId) {
+        clearInterval(heartbeatIntervalId);
+        heartbeatIntervalId = null;
+    }
+}
+
 async function handleLogout() {
+    stopHeartbeat();
     try {
         await fetch(`${API_URL}/api/auth/logout`, {
             method: 'POST',
@@ -1733,6 +1761,8 @@ async function init() {
     } catch (e) {
         // Malformed localStorage — just leave the button hidden.
     }
+
+    startHeartbeat();
 
     await loadHabits();
     render();
