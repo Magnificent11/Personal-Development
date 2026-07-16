@@ -1,0 +1,202 @@
+/* Small additions on top of dashboard-v2.css for the admin page */
+
+.admin-stats-card {
+    padding: 24px 28px;
+    width: 100%;
+}
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.admin-stat-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+}
+
+.admin-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.admin-stat-value {
+    font-family: 'Sora', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.admin-users-card {
+    margin-top: 24px;
+    padding: 24px 28px;
+    width: 100%;
+}
+
+.admin-users-header {
+    margin-bottom: 16px;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.admin-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.admin-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.admin-badge-admin {
+    background: var(--gold-dim);
+    color: var(--gold);
+    border: 1px solid var(--gold-border);
+}
+.admin-badge-user {
+    background: var(--overlay-2);
+    color: var(--text-secondary);
+}
+.admin-badge-active {
+    background: var(--success-dim);
+    color: var(--success-color);
+    border: 1px solid var(--success-border);
+}
+.admin-badge-banned {
+    background: var(--danger-dim);
+    color: var(--danger-color);
+    border: 1px solid var(--danger-border);
+}
+
+.admin-row-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.admin-action-btn {
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: 1px solid var(--glass-border);
+    background: var(--overlay-1);
+    color: var(--text-primary);
+    transition: background 0.15s, color 0.15s;
+}
+.admin-action-btn:hover {
+    background: var(--overlay-3);
+}
+.admin-action-btn.danger:hover {
+    background: var(--danger-dim);
+    color: var(--danger-color);
+    border-color: var(--danger-border);
+}
+.admin-action-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.admin-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 32px;
+}
+
+.view-habits-modal {
+    width: 460px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.view-habits-body {
+    overflow-y: auto;
+    max-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.view-habit-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+}
+
+.view-habit-icon {
+    font-size: 16px;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.view-habit-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.view-habit-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.view-habit-pct {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.view-habit-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+}

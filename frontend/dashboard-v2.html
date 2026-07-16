@@ -1,9 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habit Tracker – Dashboard v2</title>
+
+    <!-- Apply the saved theme immediately, before anything renders — avoids
+         a flash of the wrong theme on load. Kept tiny and defensive since it
+         runs before the rest of the page (and localStorage) is guaranteed ready. -->
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('theme') === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,10 +33,43 @@
 
 <div class="app-wrapper">
 
-    <!-- Logo -->
-    <div class="logo">
-        <div class="logo-icon"></div>
-        <h1>Habit Tracker</h1>
+    <!-- Top header: logo + search + theme toggle -->
+    <div class="top-header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 1.5L17.5 5.75V14.25L10 18.5L2.5 14.25V5.75L10 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                    <circle cx="10" cy="10" r="2" fill="currentColor"/>
+                </svg>
+            </div>
+            <h1>Habit Tracker</h1>
+        </div>
+
+        <div class="header-actions">
+            <button class="theme-toggle" id="admin-btn" aria-label="Admin dashboard" title="Admin dashboard" style="display:none;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 1.5L13.5 4v4.5c0 3.2-2.3 5.6-5.5 6.5-3.2-.9-5.5-3.3-5.5-6.5V4L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                    <path d="M5.8 8L7.3 9.5L10.3 6.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+                <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="3.2" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="M8 1.2V3M8 13v1.8M14.8 8H13M3 8H1.2M12.7 3.3l-1.3 1.3M4.6 11.4l-1.3 1.3M12.7 12.7l-1.3-1.3M4.6 4.6L3.3 3.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+                <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.5 9.5A6 6 0 016.5 2.5 6 6 0 1013.5 9.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
+            <button class="theme-toggle" id="logout-btn" aria-label="Log out" title="Log out">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6.5 2.5H3.2a1 1 0 00-1 1v9a1 1 0 001 1H6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 11L14 8L10.5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 8H6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <!-- Card -->
@@ -62,6 +108,109 @@
 
         </div>
     </div>
+
+    <!-- ── WEEKLY SUMMARY CARD ────────────────────────────────── -->
+    <div class="card summary-card">
+        <div class="monthly-section-header monthly-section-header--center">
+            <span class="monthly-title">Weekly Summary</span>
+        </div>
+        <div class="summary-divider"></div>
+
+        <div class="summary-layout">
+            <!-- LEFT: stat blocks, stacked vertically -->
+            <div class="summary-stats-stack" id="summary-stats-grid">
+                <!-- stat blocks injected by JS -->
+            </div>
+
+            <!-- RIGHT: month-anchored weekly completion trend -->
+            <div class="summary-trend-panel">
+                <div class="trend-header">
+                    <span class="trend-title">Weekly Trend</span>
+                    <div class="month-nav">
+                        <button class="nav-btn" id="trend-month-prev-btn">&#8249;</button>
+                        <span class="month-label" id="trend-month-label"></span>
+                        <button class="nav-btn" id="trend-month-next-btn">&#8250;</button>
+                    </div>
+                    <span class="trend-delta" id="trend-delta"></span>
+                    <div class="trend-controls">
+                        <select class="trend-habit-select" id="trend-habit-select">
+                            <option value="all">All Habits</option>
+                            <!-- habit options injected by JS -->
+                        </select>
+                        <select class="trend-habit-select" id="trend-chart-type-select">
+                            <option value="line">Line</option>
+                            <option value="scatter" selected>Scatter</option>
+                            <option value="histogram">Histogram</option>
+                            <option value="radar">Radar</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="trend-legend" id="trend-legend">
+                    <!-- color-key legend injected by JS, only shown for multi-habit view -->
+                </div>
+                <svg class="trend-chart" id="trend-chart" viewBox="0 0 440 220">
+                    <!-- chart injected by JS -->
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MONTHLY OVERVIEW CARD ─────────────────────────────── -->
+    <div class="card monthly-card">
+    <div class="monthly-layout">
+
+        <!-- LEFT: heatmap calendar -->
+        <div class="monthly-heatmap-panel">
+            <div class="monthly-section-header">
+                <span class="monthly-title">Monthly Completion</span>
+                <div class="month-nav">
+                    <button class="nav-btn" id="month-prev-btn">&#8249;</button>
+                    <span class="month-label" id="month-label"></span>
+                    <button class="nav-btn" id="month-next-btn">&#8250;</button>
+                </div>
+            </div>
+
+            <div class="heatmap-weekday-row" id="heatmap-weekday-row">
+                <!-- Mon..Sun labels injected by JS -->
+            </div>
+
+            <div class="heatmap-grid" id="heatmap-grid">
+                <!-- day cells injected by JS -->
+            </div>
+
+            <div class="heatmap-legend">
+                <span class="legend-item"><span class="legend-swatch legend-none"></span> Not done</span>
+                <span class="legend-item"><span class="legend-swatch legend-partial"></span> Partial (&lt;75%)</span>
+                <span class="legend-item"><span class="legend-swatch legend-good"></span> Good (75%+)</span>
+                <span class="legend-item"><span class="legend-swatch legend-full"></span> Perfect (100%)</span>
+                <span class="legend-item"><span class="legend-swatch legend-future"></span> Upcoming</span>
+            </div>
+        </div>
+
+        <!-- RIGHT: donut chart + monthly progress bars -->
+        <div class="monthly-donut-panel">
+            <div class="monthly-section-header monthly-section-header--center">
+                <span class="monthly-title">Monthly Habits:</span>
+            </div>
+            <div class="donut-divider"></div>
+
+            <div class="donut-content">
+                <svg class="donut-chart" id="donut-chart" viewBox="0 0 200 200">
+                    <!-- arcs injected by JS -->
+                </svg>
+
+                <div class="donut-habit-list" id="donut-habit-list">
+                    <!-- legend rows injected by JS -->
+                </div>
+            </div>
+
+            <!-- Per-habit monthly progress bars: days completed ÷ total days in month -->
+            <div class="monthly-progress-list" id="monthly-progress-list">
+                <!-- progress rows injected by JS -->
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <!-- ── ADD HABIT MODAL ───────────────────────────────────── -->
@@ -72,6 +221,20 @@
         <div class="modal-field">
             <label for="add-name-input">Name</label>
             <input type="text" id="add-name-input" placeholder="e.g. Meditate" maxlength="32">
+        </div>
+
+        <div class="modal-field">
+            <label>Icon</label>
+            <div class="icon-swatches" id="add-icon-swatches">
+                <!-- icons injected by JS -->
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <label>Days</label>
+            <div class="day-toggle-row" id="add-day-toggles">
+                <!-- day toggle buttons injected by JS -->
+            </div>
         </div>
 
         <div class="modal-field">
@@ -96,6 +259,20 @@
         <div class="modal-field">
             <label for="edit-name-input">Name</label>
             <input type="text" id="edit-name-input" placeholder="Habit name" maxlength="32">
+        </div>
+
+        <div class="modal-field">
+            <label>Icon</label>
+            <div class="icon-swatches" id="edit-icon-swatches">
+                <!-- icons injected by JS -->
+            </div>
+        </div>
+
+        <div class="modal-field">
+            <label>Days</label>
+            <div class="day-toggle-row" id="edit-day-toggles">
+                <!-- day toggle buttons injected by JS -->
+            </div>
         </div>
 
         <div class="modal-field">

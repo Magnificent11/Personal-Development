@@ -6,7 +6,7 @@ window.onload = function() {
     accessToken = localStorage.getItem('accessToken');
     refreshToken = localStorage.getItem('refreshToken');
     if (accessToken) {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'dashboard-v2.html';
         return;
     }
 
@@ -115,27 +115,51 @@ async function handleRegister(event) {
     setLoading(btn, true, 'Creating account...');
 
     try {
-        const response = await fetch(`${API_URL}/api/auth/register`, {
+        const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, firstName, lastName }),
         });
 
-        const data = await response.json();
+        const registerData = await registerResponse.json();
 
-        if (response.ok) {
+        if (!registerResponse.ok) {
+            if (registerData.error?.toLowerCase().includes('username')) {
+                showFieldError('registerUsername', registerData.error);
+            } else {
+                showMessage(registerData.error || 'Registration failed', 'error');
+            }
+            return;
+        }
+
+        // /api/auth/register only creates the account — it doesn't issue
+        // tokens — so log the new user in immediately with the same
+        // credentials instead of sending them back to type it all again.
+        setLoading(btn, true, 'Signing in...');
+
+        const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const loginData = await loginResponse.json();
+
+        if (loginResponse.ok) {
+            localStorage.setItem('accessToken', loginData.accessToken);
+            localStorage.setItem('refreshToken', loginData.refreshToken);
+            localStorage.setItem('user', JSON.stringify(loginData.user));
+            showMessage('Account created! Redirecting...', 'success');
+            setTimeout(() => { window.location.href = 'dashboard-v2.html'; }, 500);
+        } else {
+            // Extremely unlikely right after a successful registration —
+            // fall back to the manual login tab instead of leaving them stuck.
             showMessage('Account created! Please sign in.', 'success');
             setTimeout(() => {
                 switchTab('login');
                 document.getElementById('loginUsername').value = username;
                 document.getElementById('loginBtn').disabled = false;
             }, 1500);
-        } else {
-            if (data.error?.toLowerCase().includes('username')) {
-                showFieldError('registerUsername', data.error);
-            } else {
-                showMessage(data.error || 'Registration failed', 'error');
-            }
         }
     } catch (error) {
         showMessage('Network error. Please try again.', 'error');
@@ -168,8 +192,9 @@ async function handleLogin(event) {
             refreshToken = data.refreshToken;
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
+            localStorage.setItem('user', JSON.stringify(data.user));
             showMessage('Welcome back!', 'success');
-            setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
+            setTimeout(() => { window.location.href = 'dashboard-v2.html'; }, 500);
         } else {
             if (response.status === 429) {
                 showMessage('Too many attempts. Please try again in a moment.', 'error');

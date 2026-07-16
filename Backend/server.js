@@ -17,17 +17,13 @@ app.use('/api/auth', authRoutes);
 const protectedRoutes = require('./routes/protectedRoutes');
 app.use('/api/protected', protectedRoutes);
 
-// Goal routes
-const goalRoutes = require('./routes/goalRoutes');
-app.use('/api/goals', goalRoutes);
-
 // Habit routes
 const habitRoutes = require('./routes/habitRoutes');
 app.use('/api/habits', habitRoutes);
 
-// Journal routes
-const journalRoutes = require('./routes/journalRoutes');
-app.use('/api/journals', journalRoutes);
+// Admin routes
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
 
 // Test route
 app.get("/", (req, res) => {

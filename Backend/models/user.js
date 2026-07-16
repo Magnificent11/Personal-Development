@@ -28,6 +28,23 @@ const userSchema = new mongoose.Schema({
   refreshToken: { 
     type: String,
     default: null
+  },
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user"
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  // Target % for the "Goal Progress" card — overall pooled completion rate
+  // (across all habits combined) the user is aiming for each calendar month.
+  monthlyGoalTarget: {
+    type: Number,
+    default: 80,
+    min: 1,
+    max: 100
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt fields

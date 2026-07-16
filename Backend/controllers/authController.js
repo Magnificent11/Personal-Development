@@ -6,7 +6,10 @@ const jwt = require("jsonwebtoken");
 exports.register = async (req, res) => {
   try {
     const { username, password, firstName, lastName } = req.body;
-    
+    // Note: role is intentionally NOT read from req.body here.
+    // Public registration always creates a plain "user" — promotion
+    // to admin only happens via the seed script or another admin.
+
     // Validate required fields
     if (!username || !password || !firstName || !lastName) {
       return res.status(400).json({ 
@@ -31,6 +34,7 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       firstName,
       lastName
+      // role defaults to "user" via the schema
     });
     
     res.status(201).json({ 
@@ -39,7 +43,8 @@ exports.register = async (req, res) => {
         id: newUser._id, 
         username: newUser.username,
         firstName: newUser.firstName,
-        lastName: newUser.lastName
+        lastName: newUser.lastName,
+        role: newUser.role
       } 
     });
   } catch (error) {
@@ -84,6 +89,11 @@ exports.login = async (req, res) => {
     if (!existingUser) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    // Banned/deactivated accounts can't log in
+    if (!existingUser.isActive) {
+      return res.status(403).json({ error: "This account has been deactivated" });
+    }
     
     // Compare password
     const validPassword = await bcrypt.compare(password, existingUser.password);
@@ -95,7 +105,8 @@ exports.login = async (req, res) => {
     const accessToken = jwt.sign(
       { 
         id: existingUser._id, 
-        username: existingUser.username 
+        username: existingUser.username,
+        role: existingUser.role
       },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
@@ -105,7 +116,8 @@ exports.login = async (req, res) => {
     const refreshToken = jwt.sign(
       { 
         id: existingUser._id, 
-        username: existingUser.username 
+        username: existingUser.username,
+        role: existingUser.role
       },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
@@ -123,7 +135,8 @@ exports.login = async (req, res) => {
         id: existingUser._id,
         username: existingUser.username,
         firstName: existingUser.firstName,
-        lastName: existingUser.lastName
+        lastName: existingUser.lastName,
+        role: existingUser.role
       },
     });
   } catch (error) {
@@ -152,10 +165,16 @@ exports.refresh = async (req, res) => {
     if (!user || user.refreshToken !== refreshToken) {
       return res.status(403).json({ error: "Invalid refresh token" });
     }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: "This account has been deactivated" });
+    }
     
-    // Create new access token
+    // Use the CURRENT role from the DB, not whatever was baked into the
+    // old refresh token — this is what makes a role/ban change take effect
+    // on the next refresh instead of waiting out the access token's TTL.
     const newAccessToken = jwt.sign(
-      { id: user._id, username: user.username },
+      { id: user._id, username: user.username, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
     );
