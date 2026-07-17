@@ -1,4 +1,9 @@
-const API_URL = 'http://localhost:5000';
+// 1. Dynamic API Base URL logic for switching between environments
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000" 
+    : "https://habit-tracker-9v4p.onrender.com";
+const API_URL = API_BASE_URL;
+
 let accessToken = null;
 let refreshToken = null;
 
@@ -13,26 +18,30 @@ window.onload = function() {
     // Auto-focus username and enable/disable login button on input
     const loginUsername = document.getElementById('loginUsername');
     const loginPassword = document.getElementById('loginPassword');
-    loginUsername.focus();
+    if (loginUsername) loginUsername.focus();
 
     function updateLoginBtn() {
         const btn = document.getElementById('loginBtn');
-        btn.disabled = !loginUsername.value.trim() || !loginPassword.value.trim();
+        if (btn && loginUsername && loginPassword) {
+            btn.disabled = !loginUsername.value.trim() || !loginPassword.value.trim();
+        }
     }
-    loginUsername.addEventListener('input', updateLoginBtn);
-    loginPassword.addEventListener('input', updateLoginBtn);
+    if (loginUsername) loginUsername.addEventListener('input', updateLoginBtn);
+    if (loginPassword) loginPassword.addEventListener('input', updateLoginBtn);
 
-    // Caps Lock detection on all password fields
+    // Caps Lock detection on all password fields (Production Hardened against browser autofills)
     document.querySelectorAll('input[type="password"]').forEach(input => {
         input.addEventListener('keyup', function(e) {
-            const warningId = this.id.replace('Password', 'CapsWarning')
-                .replace('loginP', 'loginCapsW')
-                .replace('registerP', 'registerCapsW');
             const warning = document.getElementById(
                 this.id === 'loginPassword' ? 'loginCapsWarning' : 'registerCapsWarning'
             );
             if (warning) {
-                warning.classList.toggle('visible', e.getModifierState('CapsLock'));
+                // Safely check if getModifierState exists (ignores browser autofill events)
+                if (typeof e.getModifierState === 'function') {
+                    warning.classList.toggle('visible', e.getModifierState('CapsLock'));
+                } else {
+                    warning.classList.remove('visible'); // Default hide if we can't detect it
+                }
             }
         });
     });
@@ -41,6 +50,7 @@ window.onload = function() {
 // Password visibility toggle
 function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
+    if (!input || !btn) return;
     const isHidden = input.type === 'password';
     input.type = isHidden ? 'text' : 'password';
     btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
@@ -51,22 +61,30 @@ function togglePassword(inputId, btn) {
 
 function switchTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    document.querySelector('.tab-indicator').classList.toggle('right', tab === 'register');
+    if (event && event.target) event.target.classList.add('active');
+    
+    const indicator = document.querySelector('.tab-indicator');
+    if (indicator) indicator.classList.toggle('right', tab === 'register');
+    
     document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
-    document.getElementById(tab === 'login' ? 'loginForm' : 'registerForm').classList.add('active');
+    const targetedForm = document.getElementById(tab === 'login' ? 'loginForm' : 'registerForm');
+    if (targetedForm) targetedForm.classList.add('active');
+    
     hideMessage();
     clearFieldErrors();
 }
 
 function showMessage(message, type) {
     const el = document.getElementById('message');
-    el.textContent = message;
-    el.className = `message ${type}`;
+    if (el) {
+        el.textContent = message;
+        el.className = `message ${type}`;
+    }
 }
 
 function hideMessage() {
-    document.getElementById('message').className = 'message';
+    const el = document.getElementById('message');
+    if (el) el.className = 'message';
 }
 
 function showFieldError(fieldId, message) {
@@ -85,9 +103,11 @@ function clearFieldErrors() {
 }
 
 function setLoading(btn, isLoading, label) {
+    if (!btn) return;
     btn.disabled = isLoading;
     btn.classList.toggle('loading', isLoading);
-    btn.querySelector('.btn-text').textContent = label;
+    const textEl = btn.querySelector('.btn-text');
+    if (textEl) textEl.textContent = label;
 }
 
 async function handleRegister(event) {
@@ -132,9 +152,6 @@ async function handleRegister(event) {
             return;
         }
 
-        // /api/auth/register only creates the account — it doesn't issue
-        // tokens — so log the new user in immediately with the same
-        // credentials instead of sending them back to type it all again.
         setLoading(btn, true, 'Signing in...');
 
         const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
@@ -152,13 +169,13 @@ async function handleRegister(event) {
             showMessage('Account created! Redirecting...', 'success');
             setTimeout(() => { window.location.href = 'dashboard-v2.html'; }, 500);
         } else {
-            // Extremely unlikely right after a successful registration —
-            // fall back to the manual login tab instead of leaving them stuck.
             showMessage('Account created! Please sign in.', 'success');
             setTimeout(() => {
                 switchTab('login');
-                document.getElementById('loginUsername').value = username;
-                document.getElementById('loginBtn').disabled = false;
+                const userInp = document.getElementById('loginUsername');
+                const logBtn = document.getElementById('loginBtn');
+                if (userInp) userInp.value = username;
+                if (logBtn) logBtn.disabled = false;
             }, 1500);
         }
     } catch (error) {
@@ -210,9 +227,12 @@ async function handleLogin(event) {
         showMessage('Network error. Please try again.', 'error');
     } finally {
         setLoading(btn, false, 'Login');
-        // Re-check disabled state after loading
-        const u = document.getElementById('loginUsername').value.trim();
-        const p = document.getElementById('loginPassword').value.trim();
-        btn.disabled = !u || !p;
+        
+        // Re-check disabled state after loading sequence finishes
+        const u = document.getElementById('loginUsername');
+        const p = document.getElementById('loginPassword');
+        if (u && p && btn) {
+            btn.disabled = !u.value.trim() || !p.value.trim();
+        }
     }
 }

@@ -1,4 +1,8 @@
-const API_URL = 'http://localhost:5000';
+// 1. Put this at the very top of your frontend JS file
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000" 
+    : "https://habit-tracker-9v4p.onrender.com";
+const API_URL = API_BASE_URL;
 let accessToken = null;
 let refreshToken = null;
 
