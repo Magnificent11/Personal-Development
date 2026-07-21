@@ -151,7 +151,7 @@ const HABIT_ICONS = [
     '🏃', // Run / Exercise
     '🏋️', // Gym / Strength training
     '🧘', // Yoga / Meditate
-    '🐶', // Walk
+    '🚶', // Walk
     '💧', // Water / Hydration
 
     // ── Restrictions / Avoidance ──
@@ -229,12 +229,6 @@ let editSelectedColor = null;
 let editSelectedIcon  = null;
 let editSelectedDays  = [...ALL_DAYS];
 let editingHabitId    = null;
-
-/* ─── MODAL WIZARD STATE (step-by-step: Name -> Days -> Icon -> Color) ─── */
-let addWizardStep  = 1;
-let editWizardStep = 1;
-const WIZARD_TOTAL_STEPS = 4;
-const WIZARD_STEP_LABELS = { 1: 'Name', 2: 'Days', 3: 'Icon', 4: 'Color' };
 
 // Drag state
 let dragHabitId = null;
@@ -630,79 +624,6 @@ function buildDayToggles(containerId, selectedDays, onToggle) {
     });
 }
 
-/* ─── MODAL WIZARD NAVIGATION (shared by Add + Edit modals) ───
-   Each modal walks through 4 steps in order: Name -> Days -> Icon -> Color.
-   `prefix` is 'add' or 'edit', matching the element ID prefixes. */
-
-// Returns false (and blocks advancing) if the current step's required
-// input isn't filled in yet — a name, and at least one scheduled day.
-function validateWizardStep(prefix, step) {
-    if (step === 1) {
-        const input = document.getElementById(`${prefix}-name-input`);
-        if (!input.value.trim()) {
-            input.focus();
-            return false;
-        }
-    }
-    if (step === 2) {
-        const days = prefix === 'add' ? addSelectedDays : editSelectedDays;
-        if (days.length === 0) return false;
-    }
-    return true;
-}
-
-function getWizardStep(prefix) {
-    return prefix === 'add' ? addWizardStep : editWizardStep;
-}
-
-function setWizardStep(prefix, step) {
-    if (prefix === 'add') addWizardStep = step; else editWizardStep = step;
-    updateWizardUI(prefix, step);
-}
-
-// Refreshes the visible step panel, the "Step X of 4: Label" text, the
-// progress dots, and which action buttons are shown for that step.
-function updateWizardUI(prefix, step) {
-    document.querySelectorAll(`#${prefix}-modal-overlay .wizard-step`).forEach(el => {
-        el.classList.toggle('active', Number(el.dataset.step) === step);
-    });
-
-    const label = document.getElementById(`${prefix}-wizard-step-label`);
-    if (label) label.textContent = `Step ${step} of ${WIZARD_TOTAL_STEPS}: ${WIZARD_STEP_LABELS[step]}`;
-
-    const dots = document.querySelectorAll(`#${prefix}-wizard-dots .wizard-dot`);
-    dots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === step - 1);
-        dot.classList.toggle('completed', i < step - 1);
-    });
-
-    const backBtn = document.getElementById(`${prefix}-modal-back`);
-    if (backBtn) backBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
-
-    const nextBtn = document.getElementById(`${prefix}-modal-next`);
-    if (nextBtn) nextBtn.style.display = step < WIZARD_TOTAL_STEPS ? '' : 'none';
-
-    const confirmBtn = document.getElementById(`${prefix}-modal-confirm`);
-    if (confirmBtn) confirmBtn.style.display = step === WIZARD_TOTAL_STEPS ? '' : 'none';
-
-    // Step 1 is the only step with a text input worth auto-focusing
-    if (step === 1) {
-        const input = document.getElementById(`${prefix}-name-input`);
-        if (input) input.focus();
-    }
-}
-
-function wizardNext(prefix) {
-    const step = getWizardStep(prefix);
-    if (!validateWizardStep(prefix, step)) return;
-    setWizardStep(prefix, Math.min(step + 1, WIZARD_TOTAL_STEPS));
-}
-
-function wizardBack(prefix) {
-    const step = getWizardStep(prefix);
-    setWizardStep(prefix, Math.max(step - 1, 1));
-}
-
 /* ─── ADD MODAL ─────────────────────────────────────────── */
 
 function openAddModal() {
@@ -715,9 +636,6 @@ function openAddModal() {
     refreshAddSwatches();
     refreshAddIcons();
     refreshAddDayToggles();
-
-    addWizardStep = 1;
-    updateWizardUI('add', 1);
 
     document.getElementById('add-modal-overlay').classList.add('open');
     document.getElementById('add-name-input').focus();
@@ -754,9 +672,9 @@ function closeAddModal() {
 async function confirmAddHabit() {
     const nameInput = document.getElementById('add-name-input');
     const name = nameInput.value.trim();
-    if (!name) { addWizardStep = 1; updateWizardUI('add', 1); return; }
+    if (!name) { nameInput.focus(); return; }
     if (!addSelectedColor) return;
-    if (addSelectedDays.length === 0) { addWizardStep = 2; updateWizardUI('add', 2); return; }
+    if (addSelectedDays.length === 0) return; // must schedule at least one day
 
     const data = await apiCall('/api/habits', 'POST', {
         name,
@@ -785,15 +703,11 @@ async function confirmAddHabit() {
 
 document.getElementById('add-modal-cancel').addEventListener('click', closeAddModal);
 document.getElementById('add-modal-confirm').addEventListener('click', confirmAddHabit);
-document.getElementById('add-modal-next').addEventListener('click', () => wizardNext('add'));
-document.getElementById('add-modal-back').addEventListener('click', () => wizardBack('add'));
 document.getElementById('add-modal-overlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeAddModal();
 });
 document.getElementById('add-name-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        if (addWizardStep < WIZARD_TOTAL_STEPS) wizardNext('add'); else confirmAddHabit();
-    }
+    if (e.key === 'Enter') confirmAddHabit();
     if (e.key === 'Escape') closeAddModal();
 });
 
@@ -813,9 +727,6 @@ function openEditModal(habitId) {
     refreshEditSwatches();
     refreshEditIcons();
     refreshEditDayToggles();
-
-    editWizardStep = 1;
-    updateWizardUI('edit', 1);
 
     document.getElementById('edit-modal-overlay').classList.add('open');
     document.getElementById('edit-name-input').focus();
@@ -858,8 +769,8 @@ function closeEditModal() {
 async function confirmEditHabit() {
     const nameInput = document.getElementById('edit-name-input');
     const name = nameInput.value.trim();
-    if (!name) { editWizardStep = 1; updateWizardUI('edit', 1); return; }
-    if (editSelectedDays.length === 0) { editWizardStep = 2; updateWizardUI('edit', 2); return; }
+    if (!name) { nameInput.focus(); return; }
+    if (editSelectedDays.length === 0) return; // must schedule at least one day
 
     const habit = HABITS.find(h => h.id === editingHabitId);
     if (!habit) return;
@@ -906,15 +817,11 @@ async function confirmDeleteHabit() {
 document.getElementById('edit-modal-cancel').addEventListener('click', closeEditModal);
 document.getElementById('edit-modal-confirm').addEventListener('click', confirmEditHabit);
 document.getElementById('edit-modal-delete').addEventListener('click', confirmDeleteHabit);
-document.getElementById('edit-modal-next').addEventListener('click', () => wizardNext('edit'));
-document.getElementById('edit-modal-back').addEventListener('click', () => wizardBack('edit'));
 document.getElementById('edit-modal-overlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeEditModal();
 });
 document.getElementById('edit-name-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        if (editWizardStep < WIZARD_TOTAL_STEPS) wizardNext('edit'); else confirmEditHabit();
-    }
+    if (e.key === 'Enter') confirmEditHabit();
     if (e.key === 'Escape') closeEditModal();
 });
 

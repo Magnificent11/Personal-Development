@@ -703,51 +703,6 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
     display: flex;
     gap: 10px;
 }
-.modal-actions-left {
-    display: flex;
-    gap: 10px;
-}
-
-/* ─── WIZARD (step-by-step modal flow) ──────────────────── */
-.wizard-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: -8px;
-}
-.wizard-step-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--gold-light);
-    letter-spacing: 0.02em;
-}
-.wizard-dots {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.wizard-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--overlay-3);
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-.wizard-dot.active {
-    background: var(--gold);
-    transform: scale(1.4);
-}
-.wizard-dot.completed {
-    background: var(--gold-border);
-}
-
-/* Only the current step is shown; others collapse out of the flex flow */
-.wizard-step {
-    display: none;
-}
-.wizard-step.active {
-    display: block;
-}
 
 /* ─── DELETE BUTTON ─────────────────────────────────────── */
 .btn-delete {
@@ -1079,7 +1034,7 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
 }
 
 /* ─── MONTHLY PROGRESS BARS (under the donut list) ──────────
-   Per-habit bar for: days completed ÷ total days in the month.
+   Per-habit bar for: days completed ÷ total days in month.
    Reuses the same visual language as the weekly progress-track/
    progress-fill bars in the right panel, just laid out in a
    vertical stack instead of a grid row. ─────────────────────── */

@@ -3,252 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habit Tracker — Become the kind of person you want to be</title>
+    <title>Personal Development - Auth</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="home-page">
+<body class="auth-page">
 
     <div class="bg-orbs">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
     </div>
 
-    <!-- Nav -->
-    <nav class="navbar">
-        <div class="navbar-inner">
-        <a href="#top" class="nav-brand">
-            <span class="logo-icon logo-icon-sm">
-                <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
-                    <path d="M14 2L24 8V20L14 26L4 20V8L14 2Z" stroke="url(#grad-nav)" stroke-width="1.5" fill="none"/>
-                    <path d="M14 7L20 10.5V17.5L14 21L8 17.5V10.5L14 7Z" fill="url(#grad-nav)" opacity="0.3"/>
-                    <circle cx="14" cy="14" r="2.5" fill="url(#grad-nav)"/>
-                    <defs>
-                        <linearGradient id="grad-nav" x1="4" y1="2" x2="24" y2="26" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stop-color="#f5d060"/>
-                            <stop offset="100%" stop-color="#c8960c"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-            </span>
-            <span class="nav-word">Habit Tracker</span>
-        </a>
-        <div class="nav-links">
-            <a href="#preview">Preview</a>
-            <a href="#how-it-works">How it works</a>
-        </div>
-        <div class="nav-actions">
-            <a href="login.html?tab=login" class="nav-btn nav-btn-ghost">Log in</a>
-            <a href="login.html?tab=register" class="nav-btn nav-btn-solid">Start Your Journey</a>
-        </div>
-        </div>
-    </nav>
+    <div class="container">
+        <div id="authSection">
 
-    <!-- Hero -->
-    <section class="hero" id="top">
-        <div class="hero-inner">
-            <div class="hero-copy">
-                <span class="eyebrow">Built for consistency, not perfection</span>
-                <h1>Become the kind of person<br>you want to be.</h1>
-                <p class="hero-tagline">Small actions. Massive change.</p>
-                <div class="hero-actions">
-                    <a href="login.html?tab=register" class="btn btn-hero">
-                        <span class="btn-text">Start Becoming Consistent</span>
-                    </a>
-                    <a href="#how-it-works" class="link-secondary">See how it works ↓</a>
-                </div>
-                <div class="streak-strip" aria-hidden="true">
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot filled"></span>
-                    <span class="streak-dot"></span>
-                    <span class="streak-dot"></span>
-                    <span class="streak-dot"></span>
-                    <span class="streak-dot"></span>
-                    <span class="streak-dot"></span>
-                    <span class="streak-label">Day 9 of a streak, still going</span>
-                </div>
-            </div>
-
-            <div class="hero-card">
-                <div class="dash-card" aria-hidden="true">
-                    <div class="dash-header">
-                        <span class="dash-live"><span class="dash-live-dot"></span>Live preview</span>
-                        <span class="dash-date">Today</span>
-                    </div>
-
-                    <div class="dash-streak">
-                        <span class="dash-flame">🔥</span>
-                        <div class="dash-streak-copy">
-                            <strong>9</strong>
-                            <span>Day streak</span>
-                        </div>
-                    </div>
-
-                    <div class="dash-progress">
-                        <div class="dash-progress-label">
-                            <span>Today's habits</span>
-                            <span>3 / 4 done</span>
-                        </div>
-                        <div class="dash-progress-track">
-                            <div class="dash-progress-fill"></div>
-                        </div>
-                    </div>
-
-                    <ul class="dash-habits">
-                        <li class="done"><span class="dash-check">✓</span>Morning run</li>
-                        <li class="done"><span class="dash-check">✓</span>Read 20 minutes</li>
-                        <li class="done"><span class="dash-check">✓</span>Meditate</li>
-                        <li><span class="dash-check"></span>Journal before bed</li>
-                    </ul>
-
-                    <div class="dash-stats">
-                        <div><strong>92%</strong><span>Completion</span></div>
-                        <div><strong>Lvl 5</strong><span>Level</span></div>
-                        <div><strong>2d</strong><span>Next badge</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Preview -->
-    <section class="preview" id="preview">
-        <div class="preview-inner">
-            <div class="preview-copy">
-                <span class="eyebrow">A look inside</span>
-                <h2>Your habits, mapped out.</h2>
-                <p>Every check-in becomes part of a bigger picture — a calendar of consistency you can actually see, not just a checkbox you forget by Thursday.</p>
-                <ul class="preview-points">
-                    <li>A daily heatmap for every habit, at a glance</li>
-                    <li>Current streak and personal best, always visible</li>
-                    <li>Weekly completion rate, no digging through menus</li>
-                </ul>
-            </div>
-            <div class="preview-mock" aria-hidden="true">
-                <div class="mock-card">
-                    <div class="mock-card-header">
-                        <span>This week</span>
-                        <span class="mock-badge">🔥 14 day streak</span>
-                    </div>
-                    <div class="mock-grid">
-                        <span class="mock-cell status-perfect"></span><span class="mock-cell status-good"></span><span class="mock-cell status-partial"></span><span class="mock-cell status-good"></span><span class="mock-cell status-perfect"></span><span class="mock-cell status-good"></span><span class="mock-cell status-none"></span>
-                        <span class="mock-cell status-good"></span><span class="mock-cell status-perfect"></span><span class="mock-cell status-perfect"></span><span class="mock-cell status-partial"></span><span class="mock-cell status-good"></span><span class="mock-cell status-perfect"></span><span class="mock-cell status-perfect"></span>
-                        <span class="mock-cell status-partial"></span><span class="mock-cell status-perfect"></span><span class="mock-cell status-good"></span><span class="mock-cell status-perfect"></span><span class="mock-cell status-perfect"></span><span class="mock-cell status-upcoming"></span><span class="mock-cell status-upcoming"></span>
-                        <span class="mock-cell status-upcoming"></span><span class="mock-cell status-upcoming"></span><span class="mock-cell status-upcoming"></span><span class="mock-cell status-upcoming"></span><span class="mock-cell status-upcoming"></span><span class="mock-cell status-upcoming"></span><span class="mock-cell status-upcoming"></span>
-                    </div>
-                    <div class="mock-stats">
-                        <div><strong>14</strong><span>Current streak</span></div>
-                        <div><strong>47</strong><span>Longest streak</span></div>
-                        <div><strong>92%</strong><span>This month</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How it works -->
-    <section class="how" id="how-it-works">
-        <span class="eyebrow center">The mechanics</span>
-        <h2 class="center">One tap today. A better you tomorrow.</h2>
-        <div class="steps-path">
-            <div class="step">
-                <div class="step-node">✓</div>
-                <h3>Log Your Habit</h3>
-                <div class="step-preview step-preview-checklist" aria-hidden="true">
-                    <div class="mini-check-row done"><span class="mini-check">✓</span>Drink water</div>
-                    <div class="mini-check-row done"><span class="mini-check">✓</span>Workout</div>
-                    <div class="mini-check-row"><span class="mini-check"></span>Read 20 mins</div>
-                </div>
-                <p>One tap and it's done — no forms, no friction, just progress logged.</p>
-            </div>
-            <div class="step">
-                <div class="step-node">🔥</div>
-                <h3>Build Your Streak</h3>
-                <div class="step-preview step-preview-streak" aria-hidden="true">
-                    <span class="mini-flame">🔥</span>
-                    <div class="mini-streak-info">
-                        <strong>7 Day Streak</strong>
-                        <div class="mini-bar-track"><div class="mini-bar-fill"></div></div>
-                    </div>
-                </div>
-                <p>Every completed day connects to the last, turning small wins into real momentum.</p>
-            </div>
-            <div class="step">
-                <div class="step-node">📈</div>
-                <h3>Learn Your Patterns</h3>
-                <div class="step-preview step-preview-heatmap" aria-hidden="true">
-                    <div class="mini-heat-row"><span>Mon</span><div class="mini-heat-track"><div class="mini-heat-fill" style="width:70%"></div></div></div>
-                    <div class="mini-heat-row"><span>Tue</span><div class="mini-heat-track"><div class="mini-heat-fill" style="width:92%"></div></div></div>
-                    <div class="mini-heat-row"><span>Wed</span><div class="mini-heat-track"><div class="mini-heat-fill" style="width:38%"></div></div></div>
-                    <div class="mini-heat-row"><span>Thu</span><div class="mini-heat-track"><div class="mini-heat-fill" style="width:85%"></div></div></div>
-                </div>
-                <p>See which habits stick and which days you tend to fall off, then adjust before the streak breaks.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Social proof -->
-    <section class="social-proof">
-        <div class="social-proof-inner">
-            <div class="proof-stars" aria-hidden="true">★★★★★</div>
-            <p class="proof-tagline">Used by 3,400+ people building better habits.</p>
-            <div class="proof-stats">
-                <div class="proof-stat">
-                    <strong>3,400+</strong>
-                    <span>Active users</span>
-                </div>
-                <div class="proof-stat">
-                    <strong>82,000+</strong>
-                    <span>Habits completed</span>
-                </div>
-                <div class="proof-stat">
-                    <strong>18 days</strong>
-                    <span>Avg. streak length</span>
-                </div>
-                <div class="proof-stat">
-                    <strong>91%</strong>
-                    <span>Avg. success rate</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <div class="footer-brand">
-                <span class="logo-icon logo-icon-sm">
-                    <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
-                        <path d="M14 2L24 8V20L14 26L4 20V8L14 2Z" stroke="url(#grad-foot)" stroke-width="1.5" fill="none"/>
-                        <path d="M14 7L20 10.5V17.5L14 21L8 17.5V10.5L14 7Z" fill="url(#grad-foot)" opacity="0.3"/>
-                        <circle cx="14" cy="14" r="2.5" fill="url(#grad-foot)"/>
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 2L24 8V20L14 26L4 20V8L14 2Z" stroke="url(#grad)" stroke-width="1.5" fill="none"/>
+                        <path d="M14 7L20 10.5V17.5L14 21L8 17.5V10.5L14 7Z" fill="url(#grad)" opacity="0.3"/>
+                        <circle cx="14" cy="14" r="2.5" fill="url(#grad)"/>
                         <defs>
-                            <linearGradient id="grad-foot" x1="4" y1="2" x2="24" y2="26" gradientUnits="userSpaceOnUse">
+                            <linearGradient id="grad" x1="4" y1="2" x2="24" y2="26" gradientUnits="userSpaceOnUse">
                                 <stop offset="0%" stop-color="#f5d060"/>
                                 <stop offset="100%" stop-color="#c8960c"/>
                             </linearGradient>
                         </defs>
                     </svg>
-                </span>
-                <span class="nav-word">Habit Tracker</span>
+                </div>
+                <h1>Habit Tracker</h1>
+                <p>Your journey starts here</p>
             </div>
-            <div class="footer-links">
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-                <a href="#">Contact</a>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('login')">Login</div>
+                <div class="tab" onclick="switchTab('register')">Register</div>
+                <div class="tab-indicator"></div>
             </div>
+
+            <div id="message" class="message" aria-live="polite"></div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="form-container active">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input type="text" id="loginUsername" placeholder="Enter your username" required autocomplete="username">
+                        </div>
+                        <span class="field-error" id="loginUsernameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)" aria-label="Show password">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        <span class="field-error" id="loginPasswordError"></span>
+                        <span class="caps-warning" id="loginCapsWarning">Caps Lock is on</span>
+                    </div>
+                    <button type="submit" class="btn" id="loginBtn" disabled>
+                        <span class="btn-text">Login</span>
+                        <span class="btn-spinner" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="form-container">
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input type="text" id="registerUsername" placeholder="Choose a username" required minlength="3" autocomplete="username">
+                        </div>
+                        <span class="field-error" id="registerUsernameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <input type="password" id="registerPassword" placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('registerPassword', this)" aria-label="Show password">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        <span class="field-error" id="registerPasswordError"></span>
+                        <span class="caps-warning" id="registerCapsWarning">Caps Lock is on</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="registerFirstName">First Name</label>
+                            <input type="text" id="registerFirstName" placeholder="John" required minlength="2" autocomplete="given-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="registerLastName">Last Name</label>
+                            <input type="text" id="registerLastName" placeholder="Doe" required minlength="2" autocomplete="family-name">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn" id="registerBtn">
+                        <span class="btn-text">Register</span>
+                        <span class="btn-spinner" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </div>
+
         </div>
-        <p class="footer-copy">Built for the days you show up. · © 2026 Habit Tracker</p>
-    </footer>
+    </div>
 
     <script src="script.js"></script>
 </body>
