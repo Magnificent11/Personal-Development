@@ -15,10 +15,23 @@ window.onload = function() {
         return;
     }
 
-    // Auto-focus username and enable/disable login button on input
     const loginUsername = document.getElementById('loginUsername');
     const loginPassword = document.getElementById('loginPassword');
-    if (loginUsername) loginUsername.focus();
+
+    // Only auto-focus on the dedicated login page — on the homepage the
+    // card sits further down next to the hero, so jumping focus there
+    // would yank the page away from the hero on load.
+    if (loginUsername && document.body.classList.contains('auth-page')) {
+        loginUsername.focus();
+    }
+
+    // Land on the right tab when arriving via a link like
+    // login.html?tab=register (used by the homepage's nav/CTA buttons).
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    if (requestedTab === 'login' || requestedTab === 'register') {
+        switchTab(requestedTab);
+        if (requestedTab === 'login' && loginUsername) loginUsername.focus();
+    }
 
     function updateLoginBtn() {
         const btn = document.getElementById('loginBtn');
@@ -36,15 +49,29 @@ window.onload = function() {
                 this.id === 'loginPassword' ? 'loginCapsWarning' : 'registerCapsWarning'
             );
             if (warning) {
-                // Safely check if getModifierState exists (ignores browser autofill events)
                 if (typeof e.getModifierState === 'function') {
                     warning.classList.toggle('visible', e.getModifierState('CapsLock'));
                 } else {
-                    warning.classList.remove('visible'); // Default hide if we can't detect it
+                    warning.classList.remove('visible');
                 }
             }
         });
     });
+
+    // Draw the "How it works" connecting line in once it scrolls into view,
+    // instead of having it sit there fully drawn from the start.
+    const stepsPath = document.querySelector('.steps-path');
+    if (stepsPath && 'IntersectionObserver' in window) {
+        const stepsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    stepsPath.classList.add('in-view');
+                    stepsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+        stepsObserver.observe(stepsPath);
+    }
 };
 
 // Password visibility toggle
@@ -59,17 +86,20 @@ function togglePassword(inputId, btn) {
         : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 }
 
-function switchTab(tab) {
+// tab: 'login' | 'register'. el: the clicked tab element (optional — falls
+// back to looking up by data-tab so this can also be called programmatically).
+function switchTab(tab, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    if (event && event.target) event.target.classList.add('active');
-    
+    const target = el || document.querySelector(`.tab[data-tab="${tab}"]`);
+    if (target) target.classList.add('active');
+
     const indicator = document.querySelector('.tab-indicator');
     if (indicator) indicator.classList.toggle('right', tab === 'register');
-    
+
     document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
     const targetedForm = document.getElementById(tab === 'login' ? 'loginForm' : 'registerForm');
     if (targetedForm) targetedForm.classList.add('active');
-    
+
     hideMessage();
     clearFieldErrors();
 }
@@ -120,7 +150,6 @@ async function handleRegister(event) {
     const firstName = document.getElementById('registerFirstName').value.trim();
     const lastName = document.getElementById('registerLastName').value.trim();
 
-    // Inline validation
     let hasError = false;
     if (username.length < 3) {
         showFieldError('registerUsername', 'Must be at least 3 characters');
@@ -181,7 +210,7 @@ async function handleRegister(event) {
     } catch (error) {
         showMessage('Network error. Please try again.', 'error');
     } finally {
-        setLoading(btn, false, 'Register');
+        setLoading(btn, false, 'Start Becoming Consistent');
     }
 }
 
@@ -227,8 +256,7 @@ async function handleLogin(event) {
         showMessage('Network error. Please try again.', 'error');
     } finally {
         setLoading(btn, false, 'Login');
-        
-        // Re-check disabled state after loading sequence finishes
+
         const u = document.getElementById('loginUsername');
         const p = document.getElementById('loginPassword');
         if (u && p && btn) {

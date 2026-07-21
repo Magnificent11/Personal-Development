@@ -218,35 +218,59 @@
     <div class="modal">
         <h2>New Habit</h2>
 
-        <div class="modal-field">
-            <label for="add-name-input">Name</label>
-            <input type="text" id="add-name-input" placeholder="e.g. Meditate" maxlength="32">
-        </div>
-
-        <div class="modal-field">
-            <label>Icon</label>
-            <div class="icon-swatches" id="add-icon-swatches">
-                <!-- icons injected by JS -->
+        <div class="wizard-header">
+            <span class="wizard-step-label" id="add-wizard-step-label">Step 1 of 4: Name</span>
+            <div class="wizard-dots" id="add-wizard-dots">
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
             </div>
         </div>
 
-        <div class="modal-field">
-            <label>Days</label>
-            <div class="day-toggle-row" id="add-day-toggles">
-                <!-- day toggle buttons injected by JS -->
+        <div class="wizard-step" data-step="1">
+            <div class="modal-field">
+                <label for="add-name-input">Name</label>
+                <input type="text" id="add-name-input" placeholder="e.g. Meditate" maxlength="32">
             </div>
         </div>
 
-        <div class="modal-field">
-            <label>Color</label>
-            <div class="color-swatches" id="add-color-swatches">
-                <!-- swatches injected by JS -->
+        <div class="wizard-step" data-step="2">
+            <div class="modal-field">
+                <label>Days</label>
+                <div class="day-toggle-row" id="add-day-toggles">
+                    <!-- day toggle buttons injected by JS -->
+                </div>
             </div>
         </div>
 
-        <div class="modal-actions">
-            <button class="btn btn-cancel" id="add-modal-cancel">Cancel</button>
-            <button class="btn btn-add" id="add-modal-confirm">Add Habit</button>
+        <div class="wizard-step" data-step="3">
+            <div class="modal-field">
+                <label>Icon</label>
+                <div class="icon-swatches" id="add-icon-swatches">
+                    <!-- icons injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="wizard-step" data-step="4">
+            <div class="modal-field">
+                <label>Color</label>
+                <div class="color-swatches" id="add-color-swatches">
+                    <!-- swatches injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions modal-actions--spread">
+            <div class="modal-actions-left">
+                <button class="btn btn-cancel" id="add-modal-back">Back</button>
+            </div>
+            <div class="modal-actions-right">
+                <button class="btn btn-cancel" id="add-modal-cancel">Cancel</button>
+                <button class="btn btn-add" id="add-modal-next">Next</button>
+                <button class="btn btn-add" id="add-modal-confirm">Add Habit</button>
+            </div>
         </div>
     </div>
 </div>
@@ -256,36 +280,58 @@
     <div class="modal">
         <h2>Edit Habit</h2>
 
-        <div class="modal-field">
-            <label for="edit-name-input">Name</label>
-            <input type="text" id="edit-name-input" placeholder="Habit name" maxlength="32">
-        </div>
-
-        <div class="modal-field">
-            <label>Icon</label>
-            <div class="icon-swatches" id="edit-icon-swatches">
-                <!-- icons injected by JS -->
+        <div class="wizard-header">
+            <span class="wizard-step-label" id="edit-wizard-step-label">Step 1 of 4: Name</span>
+            <div class="wizard-dots" id="edit-wizard-dots">
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
+                <span class="wizard-dot"></span>
             </div>
         </div>
 
-        <div class="modal-field">
-            <label>Days</label>
-            <div class="day-toggle-row" id="edit-day-toggles">
-                <!-- day toggle buttons injected by JS -->
+        <div class="wizard-step" data-step="1">
+            <div class="modal-field">
+                <label for="edit-name-input">Name</label>
+                <input type="text" id="edit-name-input" placeholder="Habit name" maxlength="32">
             </div>
         </div>
 
-        <div class="modal-field">
-            <label>Color</label>
-            <div class="color-swatches" id="edit-color-swatches">
-                <!-- swatches injected by JS -->
+        <div class="wizard-step" data-step="2">
+            <div class="modal-field">
+                <label>Days</label>
+                <div class="day-toggle-row" id="edit-day-toggles">
+                    <!-- day toggle buttons injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="wizard-step" data-step="3">
+            <div class="modal-field">
+                <label>Icon</label>
+                <div class="icon-swatches" id="edit-icon-swatches">
+                    <!-- icons injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="wizard-step" data-step="4">
+            <div class="modal-field">
+                <label>Color</label>
+                <div class="color-swatches" id="edit-color-swatches">
+                    <!-- swatches injected by JS -->
+                </div>
             </div>
         </div>
 
         <div class="modal-actions modal-actions--spread">
-            <button class="btn btn-delete" id="edit-modal-delete">Delete</button>
+            <div class="modal-actions-left">
+                <button class="btn btn-delete" id="edit-modal-delete">Delete</button>
+                <button class="btn btn-cancel" id="edit-modal-back">Back</button>
+            </div>
             <div class="modal-actions-right">
                 <button class="btn btn-cancel" id="edit-modal-cancel">Cancel</button>
+                <button class="btn btn-add" id="edit-modal-next">Next</button>
                 <button class="btn btn-add" id="edit-modal-confirm">Save</button>
             </div>
         </div>
