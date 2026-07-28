@@ -428,6 +428,57 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
     pointer-events: none;
 }
 
+/* Flex-day affordance — a small, always-faintly-visible corner icon on
+   eligible cells (its own click target, separate from the main cell
+   toggle) so people can find and use it without hover/right-click, which
+   don't work on touch. Brightens on hover for a clearer cue on desktop. */
+.cell-flex-icon {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    background: var(--overlay-2);
+    opacity: 0.45;
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.15s, color 0.15s, transform 0.15s;
+    z-index: 2;
+}
+.day-cell:hover .cell-flex-icon {
+    opacity: 0.9;
+}
+.cell-flex-icon:hover {
+    background: var(--gold-dim);
+    color: var(--gold);
+    transform: scale(1.12);
+}
+.cell-flex-icon.disabled {
+    pointer-events: none;
+    opacity: 0.15;
+}
+.cell-flex-icon.active {
+    opacity: 1;
+    background: var(--gold-dim);
+    color: var(--gold);
+}
+
+/* A day marked as a Flex Day — visually distinct from both "done"
+   (habit color) and "missed"/"empty" (grey), so it never reads as either */
+.day-cell.flexed .cell-fill {
+    opacity: 1;
+    background: var(--gold-dim);
+    border: 1.5px dashed var(--gold-border);
+}
+.day-cell.flexed .cell-flex-icon {
+    color: var(--gold);
+    opacity: 1;
+}
+
 .count-cell {
     height: 40px;
     display: flex;
@@ -500,6 +551,25 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
     white-space: nowrap;
     min-width: 22px;
     text-align: right;
+}
+
+/* "flex remaining this week" badge — only rendered for habits that have
+   flex days turned on, so habits without the feature stay uncluttered */
+.progress-flex-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gold);
+    background: var(--gold-dim);
+    border: 1px solid var(--gold-border);
+    border-radius: 6px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.progress-flex-badge.depleted {
+    color: var(--text-muted);
+    background: var(--overlay-1);
+    border-color: var(--glass-border);
 }
 
 .progress-footer {
@@ -702,6 +772,90 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
 .modal-actions-right {
     display: flex;
     gap: 10px;
+}
+.modal-actions-left {
+    display: flex;
+    gap: 10px;
+}
+
+/* ─── WIZARD (step-by-step modal flow) ──────────────────── */
+.wizard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: -8px;
+}
+.wizard-step-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-light);
+    letter-spacing: 0.02em;
+}
+.wizard-dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.wizard-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--overlay-3);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+.wizard-dot.active {
+    background: var(--gold);
+    transform: scale(1.4);
+}
+.wizard-dot.completed {
+    background: var(--gold-border);
+}
+
+/* Only the current step is shown; others collapse out of the flex flow */
+.wizard-step {
+    display: none;
+}
+.wizard-step.active {
+    display: block;
+}
+
+/* Small helper copy under a wizard field, explaining what the step does */
+.wizard-step-hint {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Flex Days count picker (0-3 per week) — same pill language as the
+   day-of-week toggles, just single-select instead of multi-select */
+.flex-count-row {
+    display: flex;
+    gap: 8px;
+}
+.flex-count-option {
+    width: 44px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--overlay-1);
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+}
+.flex-count-option:hover {
+    background: var(--overlay-3);
+    transform: scale(1.05);
+}
+.flex-count-option.selected {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--gold);
 }
 
 /* ─── DELETE BUTTON ─────────────────────────────────────── */
@@ -1034,7 +1188,7 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
 }
 
 /* ─── MONTHLY PROGRESS BARS (under the donut list) ──────────
-   Per-habit bar for: days completed ÷ total days in month.
+   Per-habit bar for: days completed ÷ total days in the month.
    Reuses the same visual language as the weekly progress-track/
    progress-fill bars in the right panel, just laid out in a
    vertical stack instead of a grid row. ─────────────────────── */
