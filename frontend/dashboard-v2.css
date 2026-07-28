@@ -911,7 +911,7 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
     flex: 1;
     overflow: hidden;
     white-space: normal;
-    word-break: break-word;
+    overflow-wrap: break-word;
     line-height: 1.3;
 }
 
@@ -1538,14 +1538,22 @@ html[data-theme="light"] .trend-habit-select {
         height: 52px;
     }
     .habit-name-cell {
-        padding: 0 8px;
+        padding: 0 6px;
         min-height: 52px;
         font-size: 12px;
-        gap: 6px;
+        gap: 4px;
     }
     .habit-icon {
         font-size: 15px;
-        width: 18px;
+        width: 16px;
+    }
+    /* The edit icon only ever appears on :hover, which touch screens never
+       trigger — so on mobile it's invisible dead weight that was still
+       reserving ~19px of width (its own size + the gap next to it). That
+       squeeze is what pushed words like "Drinking" into a mid-word break;
+       removing it from layout gives names the room to wrap at a space. */
+    .habit-edit-icon {
+        display: none;
     }
     .drag-handle {
         display: none; /* reordering by drag doesn't work well with touch scroll */
