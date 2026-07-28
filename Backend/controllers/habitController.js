@@ -17,6 +17,12 @@ function isValidScheduledDays(value) {
     value.every(d => Number.isInteger(d) && d >= 0 && d <= 6);
 }
 
+// Helper: is this a valid flexDaysPerWeek value — an integer 0-3?
+// Same "ignore if invalid" philosophy as scheduledDays above.
+function isValidFlexDaysPerWeek(value) {
+  return Number.isInteger(value) && value >= 0 && value <= 3;
+}
+
 // Get all habits for user
 exports.getHabits = async (req, res) => {
   try {
@@ -70,7 +76,7 @@ exports.updateGoal = async (req, res) => {
 // Create new habit
 exports.createHabit = async (req, res) => {
   try {
-    const { name, frequency, icon, color, order, scheduledDays } = req.body;
+    const { name, frequency, icon, color, order, scheduledDays, flexDaysPerWeek } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: "Habit name is required" });
@@ -82,6 +88,12 @@ exports.createHabit = async (req, res) => {
       ? scheduledDays
       : [0, 1, 2, 3, 4, 5, 6];
 
+    // Default to 0 (feature off) if the client didn't send a flex
+    // allowance (or sent something invalid).
+    const validFlexDaysPerWeek = isValidFlexDaysPerWeek(flexDaysPerWeek)
+      ? flexDaysPerWeek
+      : 0;
+
     const habit = await Habit.create({
       userId: req.user.id,
       name,
@@ -90,7 +102,9 @@ exports.createHabit = async (req, res) => {
       color: color || "#34d399",
       order: typeof order === "number" ? order : 0,
       scheduledDays: validScheduledDays,
-      completedDates: []
+      flexDaysPerWeek: validFlexDaysPerWeek,
+      completedDates: [],
+      flexedDates: []
     });
 
     res.status(201).json({ habit });
@@ -100,11 +114,11 @@ exports.createHabit = async (req, res) => {
   }
 };
 
-// Update habit (name / icon / color / order / scheduledDays)
+// Update habit (name / icon / color / order / scheduledDays / flexDaysPerWeek)
 exports.updateHabit = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, icon, color, order, scheduledDays } = req.body;
+    const { name, icon, color, order, scheduledDays, flexDaysPerWeek } = req.body;
 
     const habit = await Habit.findOne({ _id: id, userId: req.user.id });
     if (!habit) {
@@ -121,6 +135,12 @@ exports.updateHabit = async (req, res) => {
     // schedule or failing the whole update.
     if (scheduledDays !== undefined && isValidScheduledDays(scheduledDays)) {
       habit.scheduledDays = scheduledDays;
+    }
+
+    // Same "ignore if invalid, don't fail the whole request" treatment
+    // for the flex allowance.
+    if (flexDaysPerWeek !== undefined && isValidFlexDaysPerWeek(flexDaysPerWeek)) {
+      habit.flexDaysPerWeek = flexDaysPerWeek;
     }
 
     await habit.save();
@@ -157,6 +177,13 @@ exports.toggleHabit = async (req, res) => {
       );
     } else {
       habit.completedDates.push(new Date(targetKey));
+
+      // A day can't be both completed and flexed at once — completing a
+      // day clears any flex mark on it, same as the frontend's own rule
+      // that a checked day never shows the flex icon.
+      habit.flexedDates = habit.flexedDates.filter(
+        d => toDateKey(d) !== targetKey
+      );
     }
 
     await habit.save();
@@ -165,6 +192,79 @@ exports.toggleHabit = async (req, res) => {
   } catch (error) {
     console.error("Toggle habit error:", error);
     res.status(500).json({ error: "Failed to toggle habit" });
+  }
+};
+
+// Toggle a Flex Day for a specific date (defaults to today)
+// Body: { date: "YYYY-MM-DD" } (optional)
+//
+// Mirrors toggleHabit above, but writes to flexedDates instead of
+// completedDates. Enforces the weekly allowance server-side too (not just
+// in the UI), and refuses to flex a day that's already marked complete.
+exports.toggleFlexDay = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date } = req.body;
+
+    const habit = await Habit.findOne({ _id: id, userId: req.user.id });
+
+    if (!habit) {
+      return res.status(404).json({ error: "Habit not found" });
+    }
+
+    const targetKey = date ? date : toDateKey(new Date());
+    const targetDate = new Date(targetKey);
+
+    const alreadyCompleted = habit.completedDates.some(
+      d => toDateKey(d) === targetKey
+    );
+    if (alreadyCompleted) {
+      return res.status(400).json({ error: "Can't flex a day that's already marked complete" });
+    }
+
+    const alreadyFlexed = habit.flexedDates.some(
+      d => toDateKey(d) === targetKey
+    );
+
+    if (alreadyFlexed) {
+      // Un-flex — always allowed, this just frees up the allowance again.
+      habit.flexedDates = habit.flexedDates.filter(
+        d => toDateKey(d) !== targetKey
+      );
+    } else {
+      // Enforce the weekly allowance server-side: count how many flex
+      // days are already used in the Mon-Sun calendar week containing
+      // targetDate, same week-boundary math as the frontend.
+      const allowance = habit.flexDaysPerWeek || 0;
+      if (allowance === 0) {
+        return res.status(400).json({ error: "This habit doesn't have flex days enabled" });
+      }
+
+      const dayOfWeek = targetDate.getUTCDay(); // 0=Sun..6=Sat
+      const distToMonday = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
+      const weekStart = new Date(targetDate);
+      weekStart.setUTCDate(weekStart.getUTCDate() + distToMonday);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+
+      const usedThisWeek = habit.flexedDates.filter(d => {
+        const dd = new Date(d);
+        return dd >= weekStart && dd <= weekEnd;
+      }).length;
+
+      if (usedThisWeek >= allowance) {
+        return res.status(400).json({ error: "No flex days left this week" });
+      }
+
+      habit.flexedDates.push(targetDate);
+    }
+
+    await habit.save();
+
+    res.json({ habit });
+  } catch (error) {
+    console.error("Toggle flex day error:", error);
+    res.status(500).json({ error: "Failed to toggle flex day" });
   }
 };
 

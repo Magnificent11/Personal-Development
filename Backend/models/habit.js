@@ -47,6 +47,24 @@ const habitSchema = new mongoose.Schema({
   },
   completedDates: [{
     type: Date
+  }],
+  // How many Flex Days (excused skips) this habit gets per calendar week.
+  // 0 means the feature is off for this habit — no flex icon shows on its
+  // cells, and it behaves exactly like it did before this field existed.
+  flexDaysPerWeek: {
+    type: Number,
+    default: 0,
+    validate: {
+      validator: function (v) {
+        return Number.isInteger(v) && v >= 0 && v <= 3;
+      },
+      message: "flexDaysPerWeek must be an integer between 0 and 3"
+    }
+  },
+  // Dates this habit was excused with a Flex Day — mirrors completedDates
+  // in shape and behavior (a plain array of Dates, toggled on/off by date).
+  flexedDates: [{
+    type: Date
   }]
 }, {
   timestamps: true

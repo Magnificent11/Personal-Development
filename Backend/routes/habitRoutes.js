@@ -18,11 +18,14 @@ router.post('/', habitController.createHabit);
 router.get('/goal', habitController.getGoal);
 router.put('/goal', habitController.updateGoal);
 
-// Update habit (name / icon / color / order)
+// Update habit (name / icon / color / order / scheduledDays / flexDaysPerWeek)
 router.put('/:id', habitController.updateHabit);
 
 // Toggle habit completion for a given date (body: { date: "YYYY-MM-DD" })
 router.post('/:id/toggle', habitController.toggleHabit);
+
+// Toggle a Flex Day (excused skip) for a given date (body: { date: "YYYY-MM-DD" })
+router.post('/:id/flex-toggle', habitController.toggleFlexDay);
 
 // Delete habit
 router.delete('/:id', habitController.deleteHabit);
