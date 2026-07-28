@@ -12,15 +12,20 @@ const allowedOrigins = [
   process.env.FRONTEND_URL // Your live production frontend URL
 ];
 
+// Also allow any Vercel preview deployment of this project (e.g.
+// personal-development-git-test-flex-wizard-habit-tracker26.vercel.app),
+// so new test branches work automatically without editing this file again.
+const vercelPreviewPattern = /^https:\/\/personal-development-[a-z0-9-]+\.vercel\.app$/;
+
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    if (allowedOrigins.indexOf(origin) !== -1 || vercelPreviewPattern.test(origin)) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
   },
   credentials: true
 }));
