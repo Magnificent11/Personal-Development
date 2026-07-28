@@ -1566,6 +1566,28 @@ html[data-theme="light"] .trend-habit-select {
         min-width: 52px;
     }
 
+    /* The flex icon's 16px desktop size is too small to reliably tap on
+       touch screens — bump it toward Apple/Google's ~28-32px minimum
+       touch-target guidance, and make it fully opaque by default since
+       hover isn't a thing on touch (no way to "reveal" it first). */
+    .cell-flex-icon {
+        width: 26px;
+        height: 26px;
+        top: 2px;
+        right: 2px;
+        opacity: 0.75;
+    }
+    .cell-flex-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+    .cell-flex-icon.disabled {
+        opacity: 0.25;
+    }
+    .cell-flex-icon.active {
+        opacity: 1;
+    }
+
     .progress-row {
         padding: 0 16px;
         height: 48px;
