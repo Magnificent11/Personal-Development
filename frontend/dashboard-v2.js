@@ -190,6 +190,13 @@ let HABITS = [];
 // checked: Map of "habitId|YYYY-MM-DD" -> ISO timestamp string (when it was checked)
 const checked = new Map();
 
+// flexed: Map of "habitId|YYYY-MM-DD" -> ISO timestamp string (when a Flex
+// Day was used on that date for that habit). A flexed day is excused: it
+// doesn't count as done, but it also doesn't count against the habit —
+// no broken streak, no ding to the completion rate. Limited by each
+// habit's flexDaysPerWeek allowance, which refills every calendar week.
+const flexed = new Map();
+
 let weekOffset = 0;
 
 // Weekly Summary trend chart state
@@ -219,16 +226,69 @@ function isScheduledDay(habit, date) {
     return scheduledDays.includes(date.getDay());
 }
 
+/* ─── FLEX DAYS ─────────────────────────────────────────────
+   A Flex Day excuses a scheduled day: it doesn't count as done, but it
+   also doesn't count against the habit — no broken streak, and it drops
+   out of both the numerator and denominator of every completion rate,
+   the same way an unscheduled day would. Each habit gets a small weekly
+   allowance (habit.flexDaysPerWeek) that refills every Mon-Sun week. */
+
+function isFlexedDay(habit, date) {
+    return flexed.has(`${habit.id}|${toKey(date)}`);
+}
+
+// Mon-Sun week (as 7 Date objects) that a given date falls into —
+// independent of whatever week is currently paged into view, so flex
+// allowance is always scoped to the real calendar week a date belongs to.
+function getCalendarWeekDates(date) {
+    const dayOfWeek = date.getDay();
+    const distToMonday = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
+    const monday = addDays(date, distToMonday);
+    return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+}
+
+// How many flex days this habit has already used in the calendar week
+// containing `date`.
+function getFlexUsedInWeekOf(habit, date) {
+    const weekDates = getCalendarWeekDates(date);
+    return weekDates.filter(d => isFlexedDay(habit, d)).length;
+}
+
+// How many flex uses this habit has left in the calendar week containing
+// `date`. Habits with the feature off (0/week) always return 0.
+function getFlexRemainingInWeekOf(habit, date) {
+    const allowance = habit.flexDaysPerWeek || 0;
+    if (allowance === 0) return 0;
+    return Math.max(0, allowance - getFlexUsedInWeekOf(habit, date));
+}
+
+// A day only counts toward a habit's completion rate if it's scheduled
+// AND wasn't excused with a flex day — mirrors "unscheduled" treatment.
+function getRateEligibleDates(habit, dates) {
+    return dates.filter(d => isScheduledDay(habit, d) && !isFlexedDay(habit, d));
+}
+
 // Add modal state
-let addSelectedColor = null;
-let addSelectedIcon  = null;
-let addSelectedDays  = []; // start blank — user must explicitly pick days
+let addSelectedColor    = null;
+let addSelectedIcon     = null;
+let addSelectedDays     = []; // start blank — user must explicitly pick days
+let addSelectedFlexDays = 0;  // 0 = feature off for this habit
 
 // Edit modal state
-let editSelectedColor = null;
-let editSelectedIcon  = null;
-let editSelectedDays  = [...ALL_DAYS];
-let editingHabitId    = null;
+let editSelectedColor    = null;
+let editSelectedIcon     = null;
+let editSelectedDays     = [...ALL_DAYS];
+let editSelectedFlexDays = 0;
+let editingHabitId       = null;
+
+// Options offered by the Flex Days step picker (0 = off)
+const FLEX_DAYS_OPTIONS = [0, 1, 2, 3];
+
+/* ─── MODAL WIZARD STATE (step-by-step: Name -> Days -> Icon -> Color -> Flex Days) ─── */
+let addWizardStep  = 1;
+let editWizardStep = 1;
+const WIZARD_TOTAL_STEPS = 5;
+const WIZARD_STEP_LABELS = { 1: 'Name', 2: 'Days', 3: 'Icon', 4: 'Color', 5: 'Flex Days' };
 
 // Drag state
 let dragHabitId = null;
@@ -313,13 +373,21 @@ async function loadHabits() {
         color: h.color || UNIQUE_COLORS[0],
         icon: h.icon || HABIT_ICONS[0],
         scheduledDays: (h.scheduledDays && h.scheduledDays.length > 0) ? h.scheduledDays : [...ALL_DAYS],
+        flexDaysPerWeek: h.flexDaysPerWeek || 0,
     }));
 
     checked.clear();
+    flexed.clear();
     data.habits.forEach(h => {
         (h.completedDates || []).forEach(dateStr => {
             const key = `${h._id}|${new Date(dateStr).toISOString().slice(0, 10)}`;
             checked.set(key, dateStr);
+        });
+        // Mirrors completedDates — expects the backend to track flexed
+        // dates the same way (see the /flex-toggle endpoint note below).
+        (h.flexedDates || []).forEach(dateStr => {
+            const key = `${h._id}|${new Date(dateStr).toISOString().slice(0, 10)}`;
+            flexed.set(key, dateStr);
         });
     });
 }
@@ -459,6 +527,7 @@ function render() {
         dates.forEach(date => {
             const key = `${habit.id}|${toKey(date)}`;
             const isChecked = checked.has(key);
+            const isFlexed  = isFlexedDay(habit, date);
             const isToday_  = isToday(date);
             const isFuture  = date > today();
             const scheduled = isScheduledDay(habit, date);
@@ -467,7 +536,10 @@ function render() {
             const active = scheduled && !isFuture;
 
             const cell = document.createElement('div');
-            let cls = `day-cell${(active && isChecked) ? ' checked' : ' empty'}${isToday_ ? ' today-col' : ''}`;
+            let stateClass = ' empty';
+            if (active && isChecked) stateClass = ' checked';
+            else if (active && isFlexed) stateClass = ' flexed';
+            let cls = `day-cell${stateClass}${isToday_ ? ' today-col' : ''}`;
             if (isFuture) {
                 cls += ' future';
             } else if (!scheduled) {
@@ -498,6 +570,14 @@ function render() {
             // Off-schedule and future days aren't clickable at all
             if (active) {
                 cell.addEventListener('click', async () => {
+                    // A flexed cell's main click just clears the flex mark
+                    // (frees the allowance back up) rather than checking it —
+                    // one click, one action, same as the flex icon does.
+                    if (isFlexed) {
+                        await performFlexToggle(habit, date, key, false);
+                        return;
+                    }
+
                     const wasChecked = checked.has(key);
                     const dateKey = toKey(date);
 
@@ -529,6 +609,30 @@ function render() {
                         if (typeof renderWeeklySummary === 'function') renderWeeklySummary();
                     }
                 });
+
+                // Flex-day icon — only for habits with the feature on, and
+                // only on days that aren't already checked off (nothing to
+                // excuse on a day you've already completed).
+                if (habit.flexDaysPerWeek > 0 && !isChecked) {
+                    const remaining = getFlexRemainingInWeekOf(habit, date);
+                    const disabled = !isFlexed && remaining <= 0;
+
+                    const flexIcon = document.createElement('div');
+                    flexIcon.className = 'cell-flex-icon' + (isFlexed ? ' active' : '') + (disabled ? ' disabled' : '');
+                    flexIcon.title = isFlexed
+                        ? 'Remove flex day'
+                        : (disabled ? 'No flex days left this week' : `Use a flex day (${remaining} left this week)`);
+                    flexIcon.innerHTML = `
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M1.4 5a3.6 3.6 0 0 1 6.1-2.6M1.4 1v2h2M8.6 5a3.6 3.6 0 0 1-6.1 2.6M8.6 9V7h-2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>`;
+                    flexIcon.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (disabled) return;
+                        await performFlexToggle(habit, date, key, !isFlexed);
+                    });
+                    cell.appendChild(flexIcon);
+                }
             }
 
             grid.appendChild(cell);
@@ -554,18 +658,30 @@ function render() {
     while (panelRight.children.length > 1) panelRight.removeChild(panelRight.lastChild);
 
     HABITS.forEach(habit => {
-        const scheduledDates = dates.filter(d => isScheduledDay(habit, d));
-        const done = countCheckedThisWeek(habit.id, scheduledDates);
-        const totalScheduled = scheduledDates.length;
+        // Flexed dates are excused — they drop out of the denominator just
+        // like an unscheduled day would, so they don't ding the rate.
+        const eligibleDates = getRateEligibleDates(habit, dates);
+        const done = countCheckedThisWeek(habit.id, eligibleDates);
+        const totalScheduled = eligibleDates.length;
         const pct = totalScheduled > 0 ? Math.round((done / totalScheduled) * 100) : 0;
 
         const row = document.createElement('div');
         row.className = 'progress-row';
+
+        // Flex badge — only for habits with the feature on, showing what's
+        // left in whichever week is currently paged into view (`dates`).
+        let flexBadgeHtml = '';
+        if (habit.flexDaysPerWeek > 0) {
+            const remaining = getFlexRemainingInWeekOf(habit, dates[0]);
+            flexBadgeHtml = `<span class="progress-flex-badge${remaining === 0 ? ' depleted' : ''}" title="Flex days left this week">🔄 ${remaining}</span>`;
+        }
+
         row.innerHTML = `
             <div class="progress-track">
                 <div class="progress-fill" style="width:${pct}%; background:${habit.color}"></div>
             </div>
             <span class="progress-label">${done}/${totalScheduled}</span>
+            ${flexBadgeHtml}
         `;
         panelRight.appendChild(row);
     });
@@ -583,6 +699,48 @@ function clearDragOverStyles() {
     document.querySelectorAll('.habit-name-cell').forEach(el => {
         el.classList.remove('drag-over-top', 'drag-over-bottom');
     });
+}
+
+// Marks or clears a Flex Day for one habit/date, optimistically updating
+// the UI first and rolling back if the backend call fails — same pattern
+// as the regular checked-day toggle above.
+//
+// NOTE: this expects a backend route mirroring the existing
+// `/api/habits/:id/toggle` endpoint, but writing to a `flexedDates` list
+// on the habit document instead of `completedDates`. If that route
+// doesn't exist yet, marking a flex day will still update the UI for the
+// current session but won't persist across a reload.
+async function performFlexToggle(habit, date, key, markAsFlexed) {
+    const dateKey = toKey(date);
+    const wasFlexed = flexed.has(key);
+
+    // Optimistic UI update
+    if (markAsFlexed) {
+        flexed.set(key, new Date().toISOString());
+    } else {
+        flexed.delete(key);
+    }
+    render();
+    if (typeof renderHeatmap === 'function') renderHeatmap();
+    if (typeof renderDonut === 'function') renderDonut();
+    if (typeof renderMonthlyProgress === 'function') renderMonthlyProgress();
+    if (typeof renderWeeklySummary === 'function') renderWeeklySummary();
+
+    const data = await apiCall(`/api/habits/${habit.id}/flex-toggle`, 'POST', { date: dateKey });
+
+    if (!data) {
+        // Roll back on failure
+        if (wasFlexed) {
+            flexed.set(key, new Date().toISOString());
+        } else {
+            flexed.delete(key);
+        }
+        render();
+        if (typeof renderHeatmap === 'function') renderHeatmap();
+        if (typeof renderDonut === 'function') renderDonut();
+        if (typeof renderMonthlyProgress === 'function') renderMonthlyProgress();
+        if (typeof renderWeeklySummary === 'function') renderWeeklySummary();
+    }
 }
 
 /* ─── SWATCH / ICON BUILDERS ────────────────────────────── */
@@ -624,18 +782,111 @@ function buildDayToggles(containerId, selectedDays, onToggle) {
     });
 }
 
+// Single-select 0-3 picker for the Flex Days wizard step. 0 means the
+// feature is off for this habit (no flex icon will show on its cells).
+function buildFlexCountOptions(containerId, currentSelected, onSelect) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    FLEX_DAYS_OPTIONS.forEach(count => {
+        const opt = document.createElement('div');
+        opt.className = 'flex-count-option' + (count === currentSelected ? ' selected' : '');
+        opt.textContent = count;
+        opt.title = count === 0 ? 'No flex days' : `${count} flex day${count === 1 ? '' : 's'} per week`;
+        opt.addEventListener('click', () => onSelect(count));
+        container.appendChild(opt);
+    });
+}
+
+/* ─── MODAL WIZARD NAVIGATION (shared by Add + Edit modals) ───
+   Each modal walks through 4 steps in order: Name -> Days -> Icon -> Color.
+   `prefix` is 'add' or 'edit', matching the element ID prefixes. */
+
+// Returns false (and blocks advancing) if the current step's required
+// input isn't filled in yet — a name, and at least one scheduled day.
+function validateWizardStep(prefix, step) {
+    if (step === 1) {
+        const input = document.getElementById(`${prefix}-name-input`);
+        if (!input.value.trim()) {
+            input.focus();
+            return false;
+        }
+    }
+    if (step === 2) {
+        const days = prefix === 'add' ? addSelectedDays : editSelectedDays;
+        if (days.length === 0) return false;
+    }
+    return true;
+}
+
+function getWizardStep(prefix) {
+    return prefix === 'add' ? addWizardStep : editWizardStep;
+}
+
+function setWizardStep(prefix, step) {
+    if (prefix === 'add') addWizardStep = step; else editWizardStep = step;
+    updateWizardUI(prefix, step);
+}
+
+// Refreshes the visible step panel, the "Step X of 4: Label" text, the
+// progress dots, and which action buttons are shown for that step.
+function updateWizardUI(prefix, step) {
+    document.querySelectorAll(`#${prefix}-modal-overlay .wizard-step`).forEach(el => {
+        el.classList.toggle('active', Number(el.dataset.step) === step);
+    });
+
+    const label = document.getElementById(`${prefix}-wizard-step-label`);
+    if (label) label.textContent = `Step ${step} of ${WIZARD_TOTAL_STEPS}: ${WIZARD_STEP_LABELS[step]}`;
+
+    const dots = document.querySelectorAll(`#${prefix}-wizard-dots .wizard-dot`);
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === step - 1);
+        dot.classList.toggle('completed', i < step - 1);
+    });
+
+    const backBtn = document.getElementById(`${prefix}-modal-back`);
+    if (backBtn) backBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+
+    const nextBtn = document.getElementById(`${prefix}-modal-next`);
+    if (nextBtn) nextBtn.style.display = step < WIZARD_TOTAL_STEPS ? '' : 'none';
+
+    const confirmBtn = document.getElementById(`${prefix}-modal-confirm`);
+    if (confirmBtn) confirmBtn.style.display = step === WIZARD_TOTAL_STEPS ? '' : 'none';
+
+    // Step 1 is the only step with a text input worth auto-focusing
+    if (step === 1) {
+        const input = document.getElementById(`${prefix}-name-input`);
+        if (input) input.focus();
+    }
+}
+
+function wizardNext(prefix) {
+    const step = getWizardStep(prefix);
+    if (!validateWizardStep(prefix, step)) return;
+    setWizardStep(prefix, Math.min(step + 1, WIZARD_TOTAL_STEPS));
+}
+
+function wizardBack(prefix) {
+    const step = getWizardStep(prefix);
+    setWizardStep(prefix, Math.max(step - 1, 1));
+}
+
 /* ─── ADD MODAL ─────────────────────────────────────────── */
 
 function openAddModal() {
     document.getElementById('add-name-input').value = '';
     const available = getAvailableColors();
-    addSelectedColor = available[0] || null;
-    addSelectedIcon  = HABIT_ICONS[0];
-    addSelectedDays  = []; // start blank — user must explicitly pick days
+    addSelectedColor    = available[0] || null;
+    addSelectedIcon     = HABIT_ICONS[0];
+    addSelectedDays     = []; // start blank — user must explicitly pick days
+    addSelectedFlexDays = 0;  // off by default — opt-in per habit
 
     refreshAddSwatches();
     refreshAddIcons();
     refreshAddDayToggles();
+    refreshAddFlexOptions();
+
+    addWizardStep = 1;
+    updateWizardUI('add', 1);
 
     document.getElementById('add-modal-overlay').classList.add('open');
     document.getElementById('add-name-input').focus();
@@ -665,6 +916,13 @@ function refreshAddDayToggles() {
     });
 }
 
+function refreshAddFlexOptions() {
+    buildFlexCountOptions('add-flex-options', addSelectedFlexDays, (count) => {
+        addSelectedFlexDays = count;
+        refreshAddFlexOptions();
+    });
+}
+
 function closeAddModal() {
     document.getElementById('add-modal-overlay').classList.remove('open');
 }
@@ -672,15 +930,16 @@ function closeAddModal() {
 async function confirmAddHabit() {
     const nameInput = document.getElementById('add-name-input');
     const name = nameInput.value.trim();
-    if (!name) { nameInput.focus(); return; }
+    if (!name) { addWizardStep = 1; updateWizardUI('add', 1); return; }
     if (!addSelectedColor) return;
-    if (addSelectedDays.length === 0) return; // must schedule at least one day
+    if (addSelectedDays.length === 0) { addWizardStep = 2; updateWizardUI('add', 2); return; }
 
     const data = await apiCall('/api/habits', 'POST', {
         name,
         icon: addSelectedIcon,
         color: addSelectedColor,
         scheduledDays: [...addSelectedDays],
+        flexDaysPerWeek: addSelectedFlexDays,
         order: HABITS.length,
     });
     if (!data) return;
@@ -691,6 +950,7 @@ async function confirmAddHabit() {
         color: data.habit.color,
         icon: data.habit.icon,
         scheduledDays: (data.habit.scheduledDays && data.habit.scheduledDays.length > 0) ? data.habit.scheduledDays : [...ALL_DAYS],
+        flexDaysPerWeek: data.habit.flexDaysPerWeek || 0,
     });
 
     closeAddModal();
@@ -703,11 +963,15 @@ async function confirmAddHabit() {
 
 document.getElementById('add-modal-cancel').addEventListener('click', closeAddModal);
 document.getElementById('add-modal-confirm').addEventListener('click', confirmAddHabit);
+document.getElementById('add-modal-next').addEventListener('click', () => wizardNext('add'));
+document.getElementById('add-modal-back').addEventListener('click', () => wizardBack('add'));
 document.getElementById('add-modal-overlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeAddModal();
 });
 document.getElementById('add-name-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') confirmAddHabit();
+    if (e.key === 'Enter') {
+        if (addWizardStep < WIZARD_TOTAL_STEPS) wizardNext('add'); else confirmAddHabit();
+    }
     if (e.key === 'Escape') closeAddModal();
 });
 
@@ -717,16 +981,21 @@ function openEditModal(habitId) {
     const habit = HABITS.find(h => h.id === habitId);
     if (!habit) return;
 
-    editingHabitId    = habitId;
-    editSelectedColor = habit.color;
-    editSelectedIcon  = habit.icon || HABIT_ICONS[0];
-    editSelectedDays  = habit.scheduledDays ? [...habit.scheduledDays] : [...ALL_DAYS];
+    editingHabitId       = habitId;
+    editSelectedColor    = habit.color;
+    editSelectedIcon     = habit.icon || HABIT_ICONS[0];
+    editSelectedDays     = habit.scheduledDays ? [...habit.scheduledDays] : [...ALL_DAYS];
+    editSelectedFlexDays = habit.flexDaysPerWeek || 0;
 
     document.getElementById('edit-name-input').value = habit.label;
 
     refreshEditSwatches();
     refreshEditIcons();
     refreshEditDayToggles();
+    refreshEditFlexOptions();
+
+    editWizardStep = 1;
+    updateWizardUI('edit', 1);
 
     document.getElementById('edit-modal-overlay').classList.add('open');
     document.getElementById('edit-name-input').focus();
@@ -761,6 +1030,13 @@ function refreshEditDayToggles() {
     });
 }
 
+function refreshEditFlexOptions() {
+    buildFlexCountOptions('edit-flex-options', editSelectedFlexDays, (count) => {
+        editSelectedFlexDays = count;
+        refreshEditFlexOptions();
+    });
+}
+
 function closeEditModal() {
     document.getElementById('edit-modal-overlay').classList.remove('open');
     editingHabitId = null;
@@ -769,8 +1045,8 @@ function closeEditModal() {
 async function confirmEditHabit() {
     const nameInput = document.getElementById('edit-name-input');
     const name = nameInput.value.trim();
-    if (!name) { nameInput.focus(); return; }
-    if (editSelectedDays.length === 0) return; // must schedule at least one day
+    if (!name) { editWizardStep = 1; updateWizardUI('edit', 1); return; }
+    if (editSelectedDays.length === 0) { editWizardStep = 2; updateWizardUI('edit', 2); return; }
 
     const habit = HABITS.find(h => h.id === editingHabitId);
     if (!habit) return;
@@ -780,6 +1056,7 @@ async function confirmEditHabit() {
         icon: editSelectedIcon,
         color: editSelectedColor,
         scheduledDays: [...editSelectedDays],
+        flexDaysPerWeek: editSelectedFlexDays,
     });
     if (!data) return;
 
@@ -787,6 +1064,7 @@ async function confirmEditHabit() {
     habit.color = editSelectedColor;
     habit.icon  = editSelectedIcon;
     habit.scheduledDays = [...editSelectedDays];
+    habit.flexDaysPerWeek = editSelectedFlexDays;
 
     closeEditModal();
     render();
@@ -805,6 +1083,9 @@ async function confirmDeleteHabit() {
     for (const key of [...checked.keys()]) {
         if (key.startsWith(editingHabitId + '|')) checked.delete(key);
     }
+    for (const key of [...flexed.keys()]) {
+        if (key.startsWith(editingHabitId + '|')) flexed.delete(key);
+    }
     HABITS = HABITS.filter(h => h.id !== editingHabitId);
     closeEditModal();
     render();
@@ -817,11 +1098,15 @@ async function confirmDeleteHabit() {
 document.getElementById('edit-modal-cancel').addEventListener('click', closeEditModal);
 document.getElementById('edit-modal-confirm').addEventListener('click', confirmEditHabit);
 document.getElementById('edit-modal-delete').addEventListener('click', confirmDeleteHabit);
+document.getElementById('edit-modal-next').addEventListener('click', () => wizardNext('edit'));
+document.getElementById('edit-modal-back').addEventListener('click', () => wizardBack('edit'));
 document.getElementById('edit-modal-overlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeEditModal();
 });
 document.getElementById('edit-name-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') confirmEditHabit();
+    if (e.key === 'Enter') {
+        if (editWizardStep < WIZARD_TOTAL_STEPS) wizardNext('edit'); else confirmEditHabit();
+    }
     if (e.key === 'Escape') closeEditModal();
 });
 
@@ -872,16 +1157,19 @@ function daysInMonth(year, month) {
 }
 
 // Semantic status for a given day, based on % of that day's SCHEDULED
-// habits completed (habits that don't apply to this weekday are excluded
-// entirely from both the count and the denominator). Returns:
+// habits completed (habits that don't apply to this weekday, or that used
+// a flex day on this date, are excluded entirely from both the count and
+// the denominator — a flexed habit is treated like it wasn't scheduled).
+// Returns:
 //  - { future: true } for days that haven't happened yet
 //  - { unscheduled: true } for past days where no habit was scheduled at all
+//    (or every scheduled habit that day was excused with a flex day)
 //  - { status, doneCount, total } otherwise, where status is 'none' (0%),
 //    'partial' (<75%), 'good' (75-99%), or 'full' (100%)
 function getDayHeatInfo(date) {
     if (date > today()) return { future: true };
 
-    const scheduledHabits = HABITS.filter(h => isScheduledDay(h, date));
+    const scheduledHabits = HABITS.filter(h => isScheduledDay(h, date) && !isFlexedDay(h, date));
     const total = scheduledHabits.length;
 
     if (total === 0) return { unscheduled: true };
@@ -974,8 +1262,10 @@ document.getElementById('month-next-btn').addEventListener('click', () => {
 
 // Each habit's own completion rate for the month currently shown:
 // days completed ÷ SCHEDULED days in that month (only weekdays this habit
-// applies to). A Mon/Wed/Fri habit in a 31-day month is judged out of
-// however many Mon/Wed/Fri's fall in that month, not out of 31.
+// applies to, and excluding any day excused with a flex day). A Mon/Wed/Fri
+// habit in a 31-day month is judged out of however many Mon/Wed/Fri's fall
+// in that month, not out of 31 — and a flexed Wednesday doesn't count
+// against it either.
 function getHabitMonthlyRate(habit) {
     const monthDate = getMonthDate();
     const year = monthDate.getFullYear();
@@ -986,7 +1276,7 @@ function getHabitMonthlyRate(habit) {
     let totalScheduled = 0;
     for (let day = 1; day <= totalDaysInMonth; day++) {
         const date = new Date(year, month, day);
-        if (!isScheduledDay(habit, date)) continue;
+        if (!isScheduledDay(habit, date) || isFlexedDay(habit, date)) continue;
         totalScheduled++;
         if (checked.has(`${habit.id}|${toKey(date)}`)) doneCount++;
     }
@@ -1155,23 +1445,28 @@ function getHabitCurrentStreak(habit) {
         if (checked.has(`${habit.id}|${toKey(cursor)}`)) {
             streak++;
             cursor = addDays(cursor, -1);
-        } else {
-            break;
+            continue;
         }
+        if (isFlexedDay(habit, cursor)) {
+            // Excused — doesn't add to the streak, but doesn't break it either
+            cursor = addDays(cursor, -1);
+            continue;
+        }
+        break;
     }
     return streak;
 }
 
 // A habit's completion rate over a fixed rolling 7-calendar-day window
-// ending today, counting only days that are part of the habit's schedule.
-// A Mon/Wed/Fri habit is judged out of however many of those fall in the
-// last 7 days, not out of 7.
+// ending today, counting only days that are part of the habit's schedule
+// and weren't excused with a flex day. A Mon/Wed/Fri habit is judged out
+// of however many of those fall in the last 7 days, not out of 7.
 function getHabitRolling7DayRate(habit) {
     let doneCount = 0;
     let totalScheduled = 0;
     for (let i = 0; i < 7; i++) {
         const date = addDays(today(), -i);
-        if (!isScheduledDay(habit, date)) continue;
+        if (!isScheduledDay(habit, date) || isFlexedDay(habit, date)) continue;
         totalScheduled++;
         if (checked.has(`${habit.id}|${toKey(date)}`)) doneCount++;
     }
@@ -1218,12 +1513,13 @@ function getTrendWeekMetas() {
 }
 
 // A single habit's completion rate for one set of 7 dates, respecting its
-// own schedule (a Mon/Wed/Fri habit is judged out of its own scheduled
-// days within that week, not out of 7).
+// own schedule and excluding any flexed (excused) days (a Mon/Wed/Fri
+// habit is judged out of its own scheduled days within that week, not
+// out of 7 — and a flexed day drops out of that count entirely).
 function getHabitWeeklyRate(habit, dates) {
-    const scheduledDates = dates.filter(d => isScheduledDay(habit, d));
-    const done = countCheckedThisWeek(habit.id, scheduledDates);
-    return scheduledDates.length > 0 ? done / scheduledDates.length : 0;
+    const eligibleDates = getRateEligibleDates(habit, dates);
+    const done = countCheckedThisWeek(habit.id, eligibleDates);
+    return eligibleDates.length > 0 ? done / eligibleDates.length : 0;
 }
 
 // Builds the series to plot: one entry per habit if "All Habits" is
