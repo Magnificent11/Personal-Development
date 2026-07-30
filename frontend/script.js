@@ -1,238 +1,103 @@
-// 1. Dynamic API Base URL logic for switching between environments
-const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://localhost:5000" 
-    : "https://habit-tracker-9v4p.onrender.com";
-const API_URL = API_BASE_URL;
-
-let accessToken = null;
-let refreshToken = null;
-
-window.onload = function() {
-    accessToken = localStorage.getItem('accessToken');
-    refreshToken = localStorage.getItem('refreshToken');
-    if (accessToken) {
+// Redirect signed-in users straight to the dashboard
+window.addEventListener('DOMContentLoaded', function () {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
         window.location.href = 'dashboard-v2.html';
-        return;
     }
+});
 
-    // Auto-focus username and enable/disable login button on input
-    const loginUsername = document.getElementById('loginUsername');
-    const loginPassword = document.getElementById('loginPassword');
-    if (loginUsername) loginUsername.focus();
+// Mobile nav toggle
+const navBurger = document.getElementById('navBurger');
+const navMobile = document.getElementById('navMobile');
 
-    function updateLoginBtn() {
-        const btn = document.getElementById('loginBtn');
-        if (btn && loginUsername && loginPassword) {
-            btn.disabled = !loginUsername.value.trim() || !loginPassword.value.trim();
-        }
-    }
-    if (loginUsername) loginUsername.addEventListener('input', updateLoginBtn);
-    if (loginPassword) loginPassword.addEventListener('input', updateLoginBtn);
+if (navBurger && navMobile) {
+    navBurger.addEventListener('click', function () {
+        const isOpen = navMobile.classList.toggle('open');
+        navBurger.setAttribute('aria-expanded', isOpen);
+        navBurger.classList.toggle('open', isOpen);
+    });
 
-    // Caps Lock detection on all password fields (Production Hardened against browser autofills)
-    document.querySelectorAll('input[type="password"]').forEach(input => {
-        input.addEventListener('keyup', function(e) {
-            const warning = document.getElementById(
-                this.id === 'loginPassword' ? 'loginCapsWarning' : 'registerCapsWarning'
-            );
-            if (warning) {
-                // Safely check if getModifierState exists (ignores browser autofill events)
-                if (typeof e.getModifierState === 'function') {
-                    warning.classList.toggle('visible', e.getModifierState('CapsLock'));
-                } else {
-                    warning.classList.remove('visible'); // Default hide if we can't detect it
-                }
-            }
+    navMobile.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            navMobile.classList.remove('open');
+            navBurger.setAttribute('aria-expanded', false);
         });
     });
-};
-
-// Password visibility toggle
-function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (!input || !btn) return;
-    const isHidden = input.type === 'password';
-    input.type = isHidden ? 'text' : 'password';
-    btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-    btn.innerHTML = isHidden
-        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
-        : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 }
 
-function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    if (event && event.target) event.target.classList.add('active');
-    
-    const indicator = document.querySelector('.tab-indicator');
-    if (indicator) indicator.classList.toggle('right', tab === 'register');
-    
-    document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
-    const targetedForm = document.getElementById(tab === 'login' ? 'loginForm' : 'registerForm');
-    if (targetedForm) targetedForm.classList.add('active');
-    
-    hideMessage();
-    clearFieldErrors();
-}
+// Scroll-reveal animations
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function showMessage(message, type) {
-    const el = document.getElementById('message');
-    if (el) {
-        el.textContent = message;
-        el.className = `message ${type}`;
-    }
-}
+if (!prefersReducedMotion && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
 
-function hideMessage() {
-    const el = document.getElementById('message');
-    if (el) el.className = 'message';
-}
-
-function showFieldError(fieldId, message) {
-    const input = document.getElementById(fieldId);
-    const error = document.getElementById(fieldId + 'Error');
-    if (input) input.classList.add('invalid');
-    if (error) { error.textContent = message; error.classList.add('visible'); }
-}
-
-function clearFieldErrors() {
-    document.querySelectorAll('.field-error').forEach(el => {
-        el.textContent = '';
-        el.classList.remove('visible');
+    document.querySelectorAll('.reveal').forEach(function (el) {
+        revealObserver.observe(el);
     });
-    document.querySelectorAll('input.invalid').forEach(el => el.classList.remove('invalid'));
+} else {
+    document.querySelectorAll('.reveal').forEach(function (el) {
+        el.classList.add('visible');
+    });
 }
 
-function setLoading(btn, isLoading, label) {
-    if (!btn) return;
-    btn.disabled = isLoading;
-    btn.classList.toggle('loading', isLoading);
-    const textEl = btn.querySelector('.btn-text');
-    if (textEl) textEl.textContent = label;
+// Growth trail: fills as the page scrolls, nodes light up per section
+const trailFill = document.getElementById('trailFill');
+const trailNodes = document.querySelectorAll('.trail-node');
+const sectionIds = ['hero', 'philosophy', 'features', 'how', 'stories', 'close'];
+const sections = sectionIds
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
+
+function updateTrail() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
+
+    if (trailFill) {
+        trailFill.style.height = (progress * 100) + '%';
+    }
+
+    let activeIndex = 0;
+    sections.forEach(function (section, i) {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= window.innerHeight * 0.5) {
+            activeIndex = i;
+        }
+    });
+
+    trailNodes.forEach(function (node, i) {
+        node.classList.toggle('active', i <= activeIndex);
+    });
 }
 
-async function handleRegister(event) {
-    event.preventDefault();
-    clearFieldErrors();
-
-    const btn = document.getElementById('registerBtn');
-    const username = document.getElementById('registerUsername').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const firstName = document.getElementById('registerFirstName').value.trim();
-    const lastName = document.getElementById('registerLastName').value.trim();
-
-    // Inline validation
-    let hasError = false;
-    if (username.length < 3) {
-        showFieldError('registerUsername', 'Must be at least 3 characters');
-        hasError = true;
-    }
-    if (password.length < 6) {
-        showFieldError('registerPassword', 'Must be at least 6 characters');
-        hasError = true;
-    }
-    if (hasError) return;
-
-    setLoading(btn, true, 'Creating account...');
-
-    try {
-        const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, firstName, lastName }),
+let ticking = false;
+window.addEventListener('scroll', function () {
+    if (!ticking) {
+        window.requestAnimationFrame(function () {
+            updateTrail();
+            ticking = false;
         });
-
-        const registerData = await registerResponse.json();
-
-        if (!registerResponse.ok) {
-            if (registerData.error?.toLowerCase().includes('username')) {
-                showFieldError('registerUsername', registerData.error);
-            } else {
-                showMessage(registerData.error || 'Registration failed', 'error');
-            }
-            return;
-        }
-
-        setLoading(btn, true, 'Signing in...');
-
-        const loginResponse = await fetch(`${API_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-        });
-
-        const loginData = await loginResponse.json();
-
-        if (loginResponse.ok) {
-            localStorage.setItem('accessToken', loginData.accessToken);
-            localStorage.setItem('refreshToken', loginData.refreshToken);
-            localStorage.setItem('user', JSON.stringify(loginData.user));
-            showMessage('Account created! Redirecting...', 'success');
-            setTimeout(() => { window.location.href = 'dashboard-v2.html'; }, 500);
-        } else {
-            showMessage('Account created! Please sign in.', 'success');
-            setTimeout(() => {
-                switchTab('login');
-                const userInp = document.getElementById('loginUsername');
-                const logBtn = document.getElementById('loginBtn');
-                if (userInp) userInp.value = username;
-                if (logBtn) logBtn.disabled = false;
-            }, 1500);
-        }
-    } catch (error) {
-        showMessage('Network error. Please try again.', 'error');
-    } finally {
-        setLoading(btn, false, 'Register');
+        ticking = true;
     }
-}
+});
 
-async function handleLogin(event) {
-    event.preventDefault();
-    clearFieldErrors();
+updateTrail();
 
-    const btn = document.getElementById('loginBtn');
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value;
-
-    setLoading(btn, true, 'Signing in...');
-
-    try {
-        const response = await fetch(`${API_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            accessToken = data.accessToken;
-            refreshToken = data.refreshToken;
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('refreshToken', refreshToken);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            showMessage('Welcome back!', 'success');
-            setTimeout(() => { window.location.href = 'dashboard-v2.html'; }, 500);
-        } else {
-            if (response.status === 429) {
-                showMessage('Too many attempts. Please try again in a moment.', 'error');
-            } else if (data.error?.toLowerCase().includes('password')) {
-                showFieldError('loginPassword', 'Incorrect password');
-            } else if (data.error?.toLowerCase().includes('user')) {
-                showFieldError('loginUsername', 'Username not found');
-            } else {
-                showMessage(data.error || 'Login failed', 'error');
-            }
+// Growth trail node click -> smooth scroll to section
+trailNodes.forEach(function (node) {
+    node.addEventListener('click', function () {
+        const targetId = node.getAttribute('data-target');
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
         }
-    } catch (error) {
-        showMessage('Network error. Please try again.', 'error');
-    } finally {
-        setLoading(btn, false, 'Login');
-        
-        // Re-check disabled state after loading sequence finishes
-        const u = document.getElementById('loginUsername');
-        const p = document.getElementById('loginPassword');
-        if (u && p && btn) {
-            btn.disabled = !u.value.trim() || !p.value.trim();
-        }
-    }
-}
+    });
+    node.style.cursor = 'pointer';
+});
