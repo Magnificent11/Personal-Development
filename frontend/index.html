@@ -3,121 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Development - Auth</title>
+    <title>Habit Tracker — Every small action is a vote for who you're becoming</title>
+    <meta name="description" content="A personal growth companion, not a task manager. Build the identity you want, one small promise at a time.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="landing.css">
 </head>
-<body class="auth-page">
+<body>
 
     <div class="bg-orbs">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
     </div>
 
-    <div class="container">
-        <div id="authSection">
+    <!-- Growth trail: signature scroll element, desktop only -->
+    <div class="growth-trail" aria-hidden="true">
+        <div class="trail-line"><div class="trail-fill" id="trailFill"></div></div>
+        <div class="trail-node" data-target="hero"><span class="trail-dot"></span></div>
+        <div class="trail-node" data-target="philosophy"><span class="trail-dot"></span></div>
+        <div class="trail-node" data-target="features"><span class="trail-dot"></span></div>
+        <div class="trail-node" data-target="how"><span class="trail-dot"></span></div>
+        <div class="trail-node" data-target="stories"><span class="trail-dot"></span></div>
+        <div class="trail-node" data-target="close"><span class="trail-dot"></span></div>
+    </div>
 
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                        <path d="M14 2L24 8V20L14 26L4 20V8L14 2Z" stroke="url(#grad)" stroke-width="1.5" fill="none"/>
-                        <path d="M14 7L20 10.5V17.5L14 21L8 17.5V10.5L14 7Z" fill="url(#grad)" opacity="0.3"/>
-                        <circle cx="14" cy="14" r="2.5" fill="url(#grad)"/>
+    <!-- NAV -->
+    <header class="nav" id="nav">
+        <div class="nav-inner">
+            <a class="brand" href="#hero">
+                <span class="logo-icon">
+                    <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 2L24 8V20L14 26L4 20V8L14 2Z" stroke="url(#navGrad)" stroke-width="1.5" fill="none"/>
+                        <path d="M14 7L20 10.5V17.5L14 21L8 17.5V10.5L14 7Z" fill="url(#navGrad)" opacity="0.35"/>
+                        <circle cx="14" cy="14" r="2.5" fill="url(#navGrad)"/>
                         <defs>
-                            <linearGradient id="grad" x1="4" y1="2" x2="24" y2="26" gradientUnits="userSpaceOnUse">
-                                <stop offset="0%" stop-color="#f5d060"/>
-                                <stop offset="100%" stop-color="#c8960c"/>
+                            <linearGradient id="navGrad" x1="4" y1="2" x2="24" y2="26" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#c9a96a"/>
+                                <stop offset="100%" stop-color="#7c9a6e"/>
                             </linearGradient>
                         </defs>
                     </svg>
-                </div>
-                <h1>Habit Tracker</h1>
-                <p>Your journey starts here</p>
+                </span>
+                <span class="brand-name">Habit Tracker</span>
+            </a>
+            <nav class="nav-links">
+                <a href="#philosophy">Philosophy</a>
+                <a href="#features">Features</a>
+                <a href="#how">How it works</a>
+                <a href="#stories">Stories</a>
+            </nav>
+            <div class="nav-actions">
+                <a class="link-btn" href="index.html">Sign in</a>
+                <a class="btn btn-small" href="index.html">Begin Your Journey</a>
             </div>
-
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('login')">Login</div>
-                <div class="tab" onclick="switchTab('register')">Register</div>
-                <div class="tab-indicator"></div>
-            </div>
-
-            <div id="message" class="message" aria-live="polite"></div>
-
-            <!-- Login Form -->
-            <div id="loginForm" class="form-container active">
-                <form onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label for="loginUsername">Username</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <input type="text" id="loginUsername" placeholder="Enter your username" required autocomplete="username">
-                        </div>
-                        <span class="field-error" id="loginUsernameError"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                            <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
-                            <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)" aria-label="Show password">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                        </div>
-                        <span class="field-error" id="loginPasswordError"></span>
-                        <span class="caps-warning" id="loginCapsWarning">Caps Lock is on</span>
-                    </div>
-                    <button type="submit" class="btn" id="loginBtn" disabled>
-                        <span class="btn-text">Login</span>
-                        <span class="btn-spinner" aria-hidden="true"></span>
-                    </button>
-                </form>
-            </div>
-
-            <!-- Register Form -->
-            <div id="registerForm" class="form-container">
-                <form onsubmit="handleRegister(event)">
-                    <div class="form-group">
-                        <label for="registerUsername">Username</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <input type="text" id="registerUsername" placeholder="Choose a username" required minlength="3" autocomplete="username">
-                        </div>
-                        <span class="field-error" id="registerUsernameError"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="registerPassword">Password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                            <input type="password" id="registerPassword" placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password">
-                            <button type="button" class="toggle-password" onclick="togglePassword('registerPassword', this)" aria-label="Show password">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                        </div>
-                        <span class="field-error" id="registerPasswordError"></span>
-                        <span class="caps-warning" id="registerCapsWarning">Caps Lock is on</span>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="registerFirstName">First Name</label>
-                            <input type="text" id="registerFirstName" placeholder="John" required minlength="2" autocomplete="given-name">
-                        </div>
-                        <div class="form-group">
-                            <label for="registerLastName">Last Name</label>
-                            <input type="text" id="registerLastName" placeholder="Doe" required minlength="2" autocomplete="family-name">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn" id="registerBtn">
-                        <span class="btn-text">Register</span>
-                        <span class="btn-spinner" aria-hidden="true"></span>
-                    </button>
-                </form>
-            </div>
-
+            <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
         </div>
-    </div>
+        <div class="nav-mobile" id="navMobile">
+            <a href="#philosophy">Philosophy</a>
+            <a href="#features">Features</a>
+            <a href="#how">How it works</a>
+            <a href="#stories">Stories</a>
+            <a class="btn" href="index.html">Begin Your Journey</a>
+        </div>
+    </header>
 
-    <script src="script.js"></script>
+    <main>
+        <!-- HERO -->
+        <section class="hero" id="hero">
+            <div class="hero-inner">
+                <p class="eyebrow reveal">A personal growth companion — not a task manager</p>
+                <h1 class="hero-title reveal">
+                    Every small action is a<br>
+                    <span class="accent-text">vote for the person</span><br>
+                    you're becoming.
+                </h1>
+                <p class="hero-sub reveal">
+                    Habit Tracker helps you build the identity you want, one small, honest
+                    promise at a time. No streak shame. No guilt for a missed day. Just steady,
+                    sustainable growth toward who you're meant to be.
+                </p>
+                <div class="hero-actions reveal">
+                    <a class="btn btn-large" href="index.html">Begin Your Journey</a>
+                    <a class="btn-ghost" href="#how">See how it works ↓</a>
+                </div>
+                <p class="hero-trust reveal">Trusted by people quietly becoming who they want to be — one day at a time.</p>
+            </div>
+
+            <div class="hero-card reveal" aria-hidden="true">
+                <div class="hero-card-header">
+                    <span class="hero-card-label">Today's Promises</span>
+                    <span class="hero-card-badge">Momentum: 12</span>
+                </div>
+                <div class="promise-row done">
+                    <span class="promise-check">✓</span>
+                    <span class="promise-text">Move my body for 20 minutes</span>
+                </div>
+                <div class="promise-row done">
+                    <span class="promise-check">✓</span>
+                    <span class="promise-text">Read one page before bed</span>
+                </div>
+                <div class="promise-row">
+                    <span class="promise-check empty"></span>
+                    <span class="promise-text">Write down one thing I'm proud of</span>
+                </div>
+                <p class="hero-card-note">Progress is never wasted. Welcome back, every day.</p>
+            </div>
+        </section>
+
+        <!-- PHILOSOPHY -->
+        <section class="philosophy" id="philosophy">
+            <div class="section-inner">
+                <p class="eyebrow reveal center">The shift</p>
+                <h2 class="section-title reveal center">You don't need motivation.<br>You need momentum.</h2>
+                <p class="section-sub reveal center">
+                    Most tools measure what you did. We help you notice who you're becoming.
+                    The difference changes everything about how it feels to keep going.
+                </p>
+
+                <div class="identity-grid">
+                    <div class="identity-card reveal">
+                        <p class="identity-old">"I lost 20 pounds."</p>
+                        <div class="identity-arrow">↓</div>
+                        <p class="identity-new">"I've become someone who moves every day."</p>
+                    </div>
+                    <div class="identity-card reveal">
+                        <p class="identity-old">"I finished 30 tasks."</p>
+                        <div class="identity-arrow">↓</div>
+                        <p class="identity-new">"I've kept 30 promises to myself."</p>
+                    </div>
+                    <div class="identity-card reveal">
+                        <p class="identity-old">"My streak broke."</p>
+                        <div class="identity-arrow">↓</div>
+                        <p class="identity-new">"Every comeback makes me stronger."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES -->
+        <section class="features" id="features">
+            <div class="section-inner">
+                <p class="eyebrow reveal center">Everything you need</p>
+                <h2 class="section-title reveal center">Built to help you grow, never to make you feel behind.</h2>
+
+                <div class="feature-grid">
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        </div>
+                        <h3>Today's Promises</h3>
+                        <p>Small daily commitments to the person you're becoming — never a guilt-inducing to-do list.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                        </div>
+                        <h3>Momentum</h3>
+                        <p>A forgiving way to track consistency. A missed day is never a broken streak — it's just tomorrow's opportunity.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+                        </div>
+                        <h3>Your Journey</h3>
+                        <p>A calendar that tells the story of your consistency over weeks and months, not just a single day.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="4"/></svg>
+                        </div>
+                        <h3>Future You</h3>
+                        <p>Name the identity goals you're building toward, and watch each small win move you closer.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        </div>
+                        <h3>Reflection Journal</h3>
+                        <p>Capture how you're growing, not just what you did — a quiet space to notice your own progress.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="6"/><path d="M8.7 13.5L7 22l5-3 5 3-1.7-8.5"/></svg>
+                        </div>
+                        <h3>Milestones</h3>
+                        <p>Celebrate the moments that mark real change — the ones that matter far more than a completion rate.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section class="how" id="how">
+            <div class="section-inner">
+                <p class="eyebrow reveal center">How it works</p>
+                <h2 class="section-title reveal center">Three small steps. One lifelong change.</h2>
+
+                <div class="steps">
+                    <div class="step reveal">
+                        <span class="step-num">01</span>
+                        <h3>Make a small promise</h3>
+                        <p>Pick one thing your future self will thank you for. Nothing overwhelming — just one honest step.</p>
+                    </div>
+                    <div class="step reveal">
+                        <span class="step-num">02</span>
+                        <h3>Show up, even imperfectly</h3>
+                        <p>A missed day doesn't erase months of progress. Consistency matters more than perfection, always.</p>
+                    </div>
+                    <div class="step reveal">
+                        <span class="step-num">03</span>
+                        <h3>Watch yourself become</h3>
+                        <p>Every small win compounds quietly, until one day you notice: you've become someone new.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TESTIMONIALS -->
+        <section class="stories" id="stories">
+            <div class="section-inner">
+                <p class="eyebrow reveal center">In their words</p>
+                <h2 class="section-title reveal center">People who kept showing up.</h2>
+
+                <div class="story-grid">
+                    <blockquote class="story-card reveal">
+                        <p>“I stopped thinking about my habits as a checklist. Now I think about who I'm becoming every time I show up.”</p>
+                        <cite>— Amara T.</cite>
+                    </blockquote>
+                    <blockquote class="story-card reveal">
+                        <p>“Missing a day used to wreck my whole week. Now it's just... a day. I come back easier, and I stay longer.”</p>
+                        <cite>— Jordan M.</cite>
+                    </blockquote>
+                    <blockquote class="story-card reveal">
+                        <p>“This is the first habit app that never once made me feel guilty for being human.”</p>
+                        <cite>— Priya S.</cite>
+                    </blockquote>
+                </div>
+            </div>
+        </section>
+
+        <!-- FINAL CTA -->
+        <section class="close" id="close">
+            <div class="section-inner close-inner">
+                <h2 class="close-title reveal center">Your future self is waiting.</h2>
+                <p class="close-sub reveal center">
+                    The strongest version of you is built one small decision at a time.
+                    Start today — no pressure, no perfection required.
+                </p>
+                <a class="btn btn-large reveal" href="index.html">Start Small</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="logo-icon small">
+                    <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 2L24 8V20L14 26L4 20V8L14 2Z" stroke="url(#footGrad)" stroke-width="1.5" fill="none"/>
+                        <circle cx="14" cy="14" r="2.5" fill="url(#footGrad)"/>
+                        <defs>
+                            <linearGradient id="footGrad" x1="4" y1="2" x2="24" y2="26" gradientUnits="userSpaceOnUse">
+                                <stop offset="0%" stop-color="#c9a96a"/>
+                                <stop offset="100%" stop-color="#7c9a6e"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </span>
+                <div>
+                    <p class="footer-brand-name">Habit Tracker</p>
+                    <p class="footer-tagline">Small habits. Extraordinary lives.</p>
+                </div>
+            </div>
+            <div class="footer-links">
+                <a href="#philosophy">Philosophy</a>
+                <a href="#features">Features</a>
+                <a href="#how">How it works</a>
+                <a href="index.html">Sign in</a>
+            </div>
+        </div>
+        <p class="footer-copy">© 2026 Habit Tracker. Every day is another opportunity.</p>
+    </footer>
+
+    <script src="landing.js"></script>
 </body>
 </html>
