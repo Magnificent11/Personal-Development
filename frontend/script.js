@@ -300,12 +300,24 @@ async function handleRegister(event) {
 
     setLoading(btn, true, 'Creating account...');
 
+    // The backend is on a free tier that spins down when idle — if it doesn't
+    // respond quickly, let the user know what's happening instead of leaving
+    // them staring at a silent spinner.
+    const wakeupTimer = setTimeout(() => {
+        showMessage("Waking up the server — this can take up to a minute if it's been idle. Hang tight...", 'info');
+        setLoading(btn, true, 'Waking up server...');
+    }, 3000);
+
     try {
         const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, firstName, lastName }),
         });
+
+        clearTimeout(wakeupTimer);
+        hideMessage();
+        setLoading(btn, true, 'Creating account...');
 
         const registerData = await registerResponse.json();
 
@@ -345,8 +357,10 @@ async function handleRegister(event) {
             }, 1500);
         }
     } catch (error) {
+        clearTimeout(wakeupTimer);
         showMessage('Network error. Please try again.', 'error');
     } finally {
+        clearTimeout(wakeupTimer);
         setLoading(btn, false, 'Register');
     }
 }
@@ -361,12 +375,21 @@ async function handleLogin(event) {
 
     setLoading(btn, true, 'Signing in...');
 
+    const wakeupTimer = setTimeout(() => {
+        showMessage("Waking up the server — this can take up to a minute if it's been idle. Hang tight...", 'info');
+        setLoading(btn, true, 'Waking up server...');
+    }, 3000);
+
     try {
         const response = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
         });
+
+        clearTimeout(wakeupTimer);
+        hideMessage();
+        setLoading(btn, true, 'Signing in...');
 
         const data = await response.json();
 
@@ -390,8 +413,10 @@ async function handleLogin(event) {
             }
         }
     } catch (error) {
+        clearTimeout(wakeupTimer);
         showMessage('Network error. Please try again.', 'error');
     } finally {
+        clearTimeout(wakeupTimer);
         setLoading(btn, false, 'Login');
 
         const u = document.getElementById('loginUsername');
