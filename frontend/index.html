@@ -114,24 +114,47 @@
                 <p class="hero-trust reveal">Trusted by people quietly becoming who they want to be — one day at a time.</p>
             </div>
 
-            <div class="hero-card reveal" aria-hidden="true">
+            <div class="hero-card reveal" id="heroCard">
                 <div class="hero-card-header">
-                    <span class="hero-card-label">Today's Promises</span>
+                    <span class="hero-card-label">This Week</span>
                     <span class="hero-card-badge">Momentum: 12</span>
                 </div>
-                <div class="promise-row done">
-                    <span class="promise-check">✓</span>
-                    <span class="promise-text">Move my body for 20 minutes</span>
+
+                <div class="habit-table" id="habitTable">
+                    <div class="habit-table-row habit-table-head" aria-hidden="true">
+                        <span class="habit-name-col">Habit</span>
+                        <span class="day-col">Thu</span>
+                        <span class="day-col">Fri</span>
+                        <span class="day-col">Sat</span>
+                        <span class="day-col">Sun</span>
+                    </div>
+
+                    <div class="habit-table-row">
+                        <span class="habit-name-col">Gym</span>
+                        <button type="button" class="habit-cell filled" data-habit="gym" aria-pressed="true" aria-label="Gym, Thursday, complete"></button>
+                        <button type="button" class="habit-cell" data-habit="gym" aria-pressed="false" aria-label="Gym, Friday, incomplete"></button>
+                        <button type="button" class="habit-cell filled" data-habit="gym" aria-pressed="true" aria-label="Gym, Saturday, complete"></button>
+                        <button type="button" class="habit-cell" data-habit="gym" aria-pressed="false" aria-label="Gym, Sunday, incomplete"></button>
+                    </div>
+
+                    <div class="habit-table-row">
+                        <span class="habit-name-col">Journaling</span>
+                        <button type="button" class="habit-cell" data-habit="journal" aria-pressed="false" aria-label="Journaling, Thursday, incomplete"></button>
+                        <button type="button" class="habit-cell filled" data-habit="journal" aria-pressed="true" aria-label="Journaling, Friday, complete"></button>
+                        <button type="button" class="habit-cell filled" data-habit="journal" aria-pressed="true" aria-label="Journaling, Saturday, complete"></button>
+                        <button type="button" class="habit-cell" data-habit="journal" aria-pressed="false" aria-label="Journaling, Sunday, incomplete"></button>
+                    </div>
+
+                    <div class="habit-table-row">
+                        <span class="habit-name-col">Read 10 pages</span>
+                        <button type="button" class="habit-cell filled" data-habit="read" aria-pressed="true" aria-label="Read 10 pages, Thursday, complete"></button>
+                        <button type="button" class="habit-cell filled" data-habit="read" aria-pressed="true" aria-label="Read 10 pages, Friday, complete"></button>
+                        <button type="button" class="habit-cell" data-habit="read" aria-pressed="false" aria-label="Read 10 pages, Saturday, incomplete"></button>
+                        <button type="button" class="habit-cell" data-habit="read" aria-pressed="false" aria-label="Read 10 pages, Sunday, incomplete"></button>
+                    </div>
                 </div>
-                <div class="promise-row done">
-                    <span class="promise-check">✓</span>
-                    <span class="promise-text">Read one page before bed</span>
-                </div>
-                <div class="promise-row">
-                    <span class="promise-check empty"></span>
-                    <span class="promise-text">Write down one thing I'm proud of</span>
-                </div>
-                <p class="hero-card-note">Progress is never wasted. Welcome back, every day.</p>
+
+                <p class="hero-card-note">Tap a day to try it. Progress is never wasted.</p>
             </div>
         </section>
 
