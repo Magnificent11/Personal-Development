@@ -389,6 +389,13 @@ input:focus {
     display: block;
 }
 
+.message.info {
+    background: var(--gold-dim);
+    color: var(--gold-light);
+    border: 1px solid var(--gold-border);
+    display: block;
+}
+
 /* Dashboard */
 .dashboard {
     display: none;
