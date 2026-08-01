@@ -834,10 +834,12 @@ input.invalid:focus {
 .hero-title {
     font-family: 'Sora', sans-serif;
     font-weight: 600;
-    font-size: clamp(34px, 5vw, 56px);
-    line-height: 1.18;
+    font-size: clamp(32px, 4.6vw, 54px);
+    line-height: 1.25;
     letter-spacing: -1px;
     margin-bottom: 24px;
+    text-wrap: balance;
+    max-width: 640px;
 }
 
 .accent-text {
@@ -950,6 +952,14 @@ input.invalid:focus {
 
 @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; padding-top: 60px; }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 28px;
+        line-height: 1.32;
+        max-width: none;
+    }
 }
 
 /* -------- Philosophy -------- */
