@@ -75,11 +75,24 @@
         <section class="hero" id="hero">
             <div class="hero-inner">
                 <p class="eyebrow reveal">A personal growth companion — not a task manager</p>
-                <h1 class="hero-title reveal">
-                    We are what we repeatedly do.<br>
-                    Excellence, then, is not an act,<br>
-                    but <span class="accent-text">a habit.</span>
+                <h1 class="hero-title reveal" id="heroTitle">
+                    Every small action is a<br>
+                    <span class="accent-text">vote for who</span><br>
+                    you're becoming.
                 </h1>
+                <script>
+                (function () {
+                    var variants = [
+                        'Every small action is a<br><span class="accent-text">vote for who</span><br>you\'re becoming.',
+                        'You\'re not behind.<br>You\'re <span class="accent-text">becoming.</span>',
+                        'Keep showing up.<br>That\'s how <span class="accent-text">people change.</span>'
+                    ];
+                    var el = document.getElementById('heroTitle');
+                    if (el) {
+                        el.innerHTML = variants[Math.floor(Math.random() * variants.length)];
+                    }
+                })();
+                </script>
                 <p class="hero-sub reveal">
                     Habit Tracker helps you build the identity you want, one small, honest
                     promise at a time. No streak shame. No guilt for a missed day. Just steady,
@@ -125,19 +138,46 @@
 
                 <div class="identity-grid">
                     <div class="identity-card reveal">
-                        <p class="identity-old">"I lost 20 pounds."</p>
-                        <div class="identity-arrow">↓</div>
-                        <p class="identity-new">"I've become someone who moves every day."</p>
+                        <div class="identity-row old">
+                            <span class="identity-icon icon-x">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </span>
+                            <p class="identity-old">"I lost 20 pounds."</p>
+                        </div>
+                        <div class="identity-row new">
+                            <span class="identity-icon icon-check">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            </span>
+                            <p class="identity-new">"I've become someone who moves every day."</p>
+                        </div>
                     </div>
                     <div class="identity-card reveal">
-                        <p class="identity-old">"I finished 30 tasks."</p>
-                        <div class="identity-arrow">↓</div>
-                        <p class="identity-new">"I've kept 30 promises to myself."</p>
+                        <div class="identity-row old">
+                            <span class="identity-icon icon-x">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </span>
+                            <p class="identity-old">"I finished 30 tasks."</p>
+                        </div>
+                        <div class="identity-row new">
+                            <span class="identity-icon icon-check">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            </span>
+                            <p class="identity-new">"I've kept 30 promises to myself."</p>
+                        </div>
                     </div>
                     <div class="identity-card reveal">
-                        <p class="identity-old">"My streak broke."</p>
-                        <div class="identity-arrow">↓</div>
-                        <p class="identity-new">"Every comeback makes me stronger."</p>
+                        <div class="identity-row old">
+                            <span class="identity-icon icon-x">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </span>
+                            <p class="identity-old">"My streak broke."</p>
+                        </div>
+                        <div class="identity-row new">
+                            <span class="identity-icon icon-check">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            </span>
+                            <p class="identity-new">"Every comeback makes me stronger."</p>
+                        </div>
                     </div>
                 </div>
             </div>
