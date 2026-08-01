@@ -21,6 +21,14 @@
     --error-border: rgba(239, 68, 68, 0.3);
     --success-bg: rgba(34, 197, 94, 0.1);
     --success-border: rgba(34, 197, 94, 0.3);
+
+    /* Habit table pastel accents */
+    --habit-gym: #3ddc97;
+    --habit-gym-glow: rgba(61, 220, 151, 0.35);
+    --habit-journal: #ffb75e;
+    --habit-journal-glow: rgba(255, 183, 94, 0.35);
+    --habit-read: #6cb4ee;
+    --habit-read-glow: rgba(108, 180, 238, 0.35);
 }
 
 html { scroll-behavior: smooth; }
@@ -902,42 +910,97 @@ input.invalid:focus {
     border-radius: 100px;
 }
 
-.promise-row {
+/* -------- Interactive habit table (hero widget) -------- */
+.habit-table {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    flex-direction: column;
+    gap: 10px;
 }
 
-.promise-row:last-of-type { border-bottom: none; }
+.habit-table-row {
+    display: grid;
+    grid-template-columns: 88px repeat(4, 1fr);
+    gap: 8px;
+    align-items: center;
+}
 
-.promise-check {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--gold);
-    color: #0a0800;
+.habit-table-head {
+    padding-bottom: 2px;
+}
+
+.habit-name-col {
     font-size: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.promise-check.empty {
-    background: transparent;
-    border: 1.5px solid var(--gold-border);
-}
-
-.promise-text {
-    font-size: 14px;
+    font-weight: 500;
     color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.promise-row.done .promise-text {
-    color: var(--text-primary);
+.habit-table-head .habit-name-col {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.day-col {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.habit-cell {
+    height: 34px;
+    width: 100%;
+    border-radius: 9px;
+    border: 1.5px dashed rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
+}
+
+.habit-cell:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.habit-cell:active {
+    transform: scale(0.94);
+}
+
+.habit-cell:focus-visible {
+    outline: 2px solid var(--gold-light);
+    outline-offset: 2px;
+}
+
+.habit-cell.filled {
+    border-style: solid;
+    border-color: transparent;
+}
+
+.habit-cell.filled:hover {
+    filter: brightness(1.08);
+}
+
+.habit-cell[data-habit="gym"].filled {
+    background: var(--habit-gym);
+    box-shadow: 0 6px 16px var(--habit-gym-glow);
+}
+
+.habit-cell[data-habit="journal"].filled {
+    background: var(--habit-journal);
+    box-shadow: 0 6px 16px var(--habit-journal-glow);
+}
+
+.habit-cell[data-habit="read"].filled {
+    background: var(--habit-read);
+    box-shadow: 0 6px 16px var(--habit-read-glow);
 }
 
 .hero-card-note {
@@ -959,6 +1022,16 @@ input.invalid:focus {
         font-size: 28px;
         line-height: 1.32;
         max-width: none;
+    }
+
+    .habit-table-row {
+        grid-template-columns: 66px repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .habit-cell {
+        height: 30px;
+        border-radius: 8px;
     }
 }
 
