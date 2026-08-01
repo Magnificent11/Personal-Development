@@ -110,6 +110,23 @@ window.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ---- Hero habit table: click a day cell to toggle it complete/incomplete ----
+    // Demo-only interaction — nothing here is persisted or sent to the backend.
+    document.querySelectorAll('.habit-cell').forEach(function (cell) {
+        cell.addEventListener('click', function () {
+            const isNowFilled = this.classList.toggle('filled');
+            this.setAttribute('aria-pressed', isNowFilled ? 'true' : 'false');
+
+            const label = this.getAttribute('aria-label') || '';
+            if (label) {
+                const updatedLabel = isNowFilled
+                    ? label.replace('incomplete', 'complete')
+                    : label.replace('complete', 'incomplete');
+                this.setAttribute('aria-label', updatedLabel);
+            }
+        });
+    });
+
     // ---- Scroll-reveal animations ----
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
