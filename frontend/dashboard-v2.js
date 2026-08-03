@@ -2070,19 +2070,6 @@ const ONBOARDING_STEPS = [
 
 let onboardingStepIndex = 0;
 let onboardingUserName = '';
-let onboardingActiveTargetEl = null;
-
-// Undoes whatever the previous step did to its target element (the
-// height cap/scroll for tall cards, the brightness-pop class) before
-// moving on to the next step or closing the tour.
-function clearOnboardingTargetConstraints() {
-    if (onboardingActiveTargetEl) {
-        onboardingActiveTargetEl.style.maxHeight = '';
-        onboardingActiveTargetEl.style.overflowY = '';
-        onboardingActiveTargetEl.classList.remove('onboarding-pop', 'onboarding-scroll-target');
-    }
-    onboardingActiveTargetEl = null;
-}
 
 function startOnboardingTour(firstName) {
     console.log('[onboarding] starting tour');
@@ -2095,15 +2082,12 @@ function startOnboardingTour(firstName) {
 }
 
 function renderOnboardingStep() {
-    clearOnboardingTargetConstraints();
-
     const step = ONBOARDING_STEPS[onboardingStepIndex];
     const titleEl = document.getElementById('onboarding-title');
     const descEl = document.getElementById('onboarding-desc');
     const nextBtn = document.getElementById('onboarding-next');
     const highlightEl = document.getElementById('onboarding-highlight');
     const tooltipEl = document.getElementById('onboarding-tooltip');
-    const backdropEl = document.getElementById('onboarding-backdrop');
 
     titleEl.textContent = typeof step.title === 'function' ? step.title(onboardingUserName) : step.title;
     descEl.textContent = step.desc;
@@ -2111,12 +2095,10 @@ function renderOnboardingStep() {
 
     if (!step.target) {
         highlightEl.style.display = 'none';
-        backdropEl.classList.add('active');
         tooltipEl.classList.add('onboarding-tooltip--centered');
         return;
     }
 
-    backdropEl.classList.remove('active');
     tooltipEl.classList.remove('onboarding-tooltip--centered');
 
     const targetEl = document.querySelector(step.target);
@@ -2126,36 +2108,15 @@ function renderOnboardingStep() {
         return;
     }
 
-    targetEl.scrollIntoView({ behavior: 'auto', block: 'start' });
-    requestAnimationFrame(() => {
-        window.scrollBy(0, -12);
-        requestAnimationFrame(() => positionOnboardingHighlight(targetEl));
-    });
+    targetEl.scrollIntoView({ behavior: 'auto', block: 'center' });
+    requestAnimationFrame(() => positionOnboardingHighlight(targetEl));
 }
 
 function positionOnboardingHighlight(targetEl) {
+    const rect = targetEl.getBoundingClientRect();
     const pad = 6;
-    const margin = 16;
     const highlightEl = document.getElementById('onboarding-highlight');
     const tooltipEl = document.getElementById('onboarding-tooltip');
-
-    // If the target is taller than what fits on screen, cap ITS height and
-    // make it internally scrollable — this keeps the highlight box (which
-    // just wraps whatever the target's current rect is) always fully
-    // visible, never cut off.
-    const availableHeight = window.innerHeight - margin * 2;
-    const naturalHeight = targetEl.scrollHeight;
-
-    if (naturalHeight > availableHeight) {
-        targetEl.style.maxHeight = `${availableHeight}px`;
-        targetEl.style.overflowY = 'auto';
-        targetEl.classList.add('onboarding-scroll-target');
-    }
-
-    targetEl.classList.add('onboarding-pop');
-    onboardingActiveTargetEl = targetEl;
-
-    const rect = targetEl.getBoundingClientRect();
 
     highlightEl.style.display = 'block';
     highlightEl.style.top = `${rect.top - pad}px`;
@@ -2164,37 +2125,38 @@ function positionOnboardingHighlight(targetEl) {
     highlightEl.style.height = `${rect.height + pad * 2}px`;
 
     const tooltipWidth = tooltipEl.offsetWidth || 320;
-    const tooltipHeight = tooltipEl.offsetHeight || 200;
-
     const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    let top;
-    if (spaceBelow >= tooltipHeight + margin) {
-        top = rect.bottom + pad + 12;
-    } else if (spaceAbove >= tooltipHeight + margin) {
-        top = rect.top - tooltipHeight - pad - 12;
-    } else {
-        top = window.innerHeight - tooltipHeight - margin;
-    }
-    top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
+    const placeAbove = spaceBelow < 220 && rect.top > 220;
 
     let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-    left = Math.max(margin, Math.min(left, window.innerWidth - tooltipWidth - margin));
-
+    left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16));
     tooltipEl.style.left = `${left}px`;
-    tooltipEl.style.top = `${top}px`;
-    tooltipEl.style.bottom = 'auto';
+
+    if (placeAbove) {
+        tooltipEl.style.bottom = `${window.innerHeight - rect.top + pad + 12}px`;
+        tooltipEl.style.top = 'auto';
+    } else {
+        tooltipEl.style.top = `${rect.bottom + pad + 12}px`;
+        tooltipEl.style.bottom = 'auto';
+    }
+}
+
+function advanceOnboarding() {
+    if (onboardingStepIndex < ONBOARDING_STEPS.length - 1) {
+        onboardingStepIndex++;
+        renderOnboardingStep();
+    } else {
+        finishOnboarding();
+    }
 }
 
 async function finishOnboarding() {
     console.log('[onboarding] finishing/closing tour');
-    clearOnboardingTargetConstraints();
-
     const overlay = document.getElementById('onboarding-overlay');
+    // Belt-and-suspenders: force it closed via inline style AND remove the
+    // class, so a stale/cached CSS file can't leave this stuck open.
     overlay.classList.remove('open');
     overlay.style.display = 'none';
-    document.body.classList.remove('onboarding-lock-scroll');
 
     try {
         const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
@@ -2206,6 +2168,11 @@ async function finishOnboarding() {
         console.warn('[onboarding] could not update localStorage user', e);
     }
 
+    // Fire-and-forget, silent on failure — this is a background sync call,
+    // not a user-initiated action, so it shouldn't interrupt with an alert()
+    // the way apiCall() does. If it fails (e.g. backend not deployed with
+    // this route yet), the localStorage flag above still keeps the tour
+    // from reappearing on this device for this session.
     try {
         await fetch(`${API_URL}/api/auth/onboarding-complete`, {
             method: 'POST',

@@ -1650,65 +1650,31 @@ html[data-theme="light"] .trend-habit-select {
 }
 .onboarding-overlay.open { display: block; }
 
-body.onboarding-lock-scroll {
-    overflow: hidden;
-}
-
-/* Only used for steps with no target (the centered Welcome step) —
-   a plain full-screen dim, since there's no element to spotlight. */
 .onboarding-backdrop {
     position: fixed;
     inset: 0;
     z-index: 300;
-    background: rgba(0, 0, 0, 0.72);
-    display: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
-.onboarding-backdrop.active { display: block; }
 
-/* Spotlight cutout: the highlight box itself is transparent, so the real
-   element underneath renders completely normally (no blur, no dimming).
-   The dark overlay is faked entirely via a huge box-shadow spread drawn
-   AROUND this box — everywhere outside it goes dark, nothing inside it
-   is touched at all. */
 .onboarding-highlight {
     position: fixed;
     display: none;
     border-radius: 14px;
     border: 2px solid var(--gold);
+    box-shadow: 0 0 0 4px var(--gold-dim), 0 0 30px var(--gold-glow);
     pointer-events: none;
     z-index: 301;
-    box-shadow:
-        0 0 0 4px var(--gold-dim),
-        0 0 30px var(--gold-glow),
-        0 0 0 9999px rgba(0, 0, 0, 0.72);
-}
-
-/* Temporary brightness/saturation boost applied directly to the real
-   highlighted element while it's the active step — makes it pop without
-   ever touching layout or size. */
-.onboarding-pop {
-    filter: brightness(1.12) saturate(1.15);
-    position: relative;
-    z-index: 302;
-}
-
-/* Applied to a target element that's taller than the viewport for the
-   duration of its step — caps its height and makes IT scrollable, so the
-   highlight box that wraps it is always fully visible on screen. */
-.onboarding-scroll-target {
-    scrollbar-width: thin;
-    scrollbar-color: var(--gold-border) transparent;
-}
-.onboarding-scroll-target::-webkit-scrollbar { width: 6px; }
-.onboarding-scroll-target::-webkit-scrollbar-thumb {
-    background: var(--gold-border);
-    border-radius: 4px;
+    transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
 }
 
 .onboarding-tooltip {
     position: fixed;
-    z-index: 303;
+    z-index: 302;
     width: 320px;
+    transition: top 0.25s ease, bottom 0.25s ease, left 0.25s ease;
 }
 .onboarding-tooltip h2 { color: var(--gold-light); }
 .onboarding-tooltip .onboarding-desc {
