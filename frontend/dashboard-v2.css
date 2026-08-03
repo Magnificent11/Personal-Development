@@ -1640,3 +1640,58 @@ html[data-theme="light"] .trend-habit-select {
         padding: 20px;
     }
 }
+
+/* ─── ONBOARDING TOUR ────────────────────────────────────── */
+.onboarding-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: none;
+}
+.onboarding-overlay.open { display: block; }
+
+.onboarding-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.onboarding-highlight {
+    position: fixed;
+    display: none;
+    border-radius: 14px;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 0 4px var(--gold-dim), 0 0 30px var(--gold-glow);
+    pointer-events: none;
+    z-index: 301;
+    transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+}
+
+.onboarding-tooltip {
+    position: fixed;
+    z-index: 302;
+    width: 320px;
+    transition: top 0.25s ease, bottom 0.25s ease, left 0.25s ease;
+}
+.onboarding-tooltip h2 { color: var(--gold-light); }
+.onboarding-tooltip .onboarding-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.onboarding-tooltip--centered {
+    top: 50% !important;
+    left: 50% !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%);
+    width: min(360px, 90vw) !important;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .onboarding-tooltip { width: min(300px, 88vw); }
+}
