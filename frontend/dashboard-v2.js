@@ -2238,7 +2238,22 @@ async function init() {
     try {
         const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
         if (storedUser && !storedUser.hasCompletedOnboarding) {
-            startOnboardingTour(storedUser.firstName);
+            if (HABITS.length > 0) {
+                // Pre-existing user from before this feature shipped — they
+                // already have habits/history, so they don't need a "welcome,
+                // let's get started" tour. Mark it complete silently instead.
+                storedUser.hasCompletedOnboarding = true;
+                localStorage.setItem('user', JSON.stringify(storedUser));
+                fetch(`${API_URL}/api/auth/onboarding-complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }).catch(() => {});
+            } else {
+                startOnboardingTour(storedUser.firstName);
+            }
         }
     } catch (e) {
         console.warn('[onboarding] init check failed', e);
