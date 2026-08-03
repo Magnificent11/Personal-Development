@@ -20,4 +20,9 @@ router.post('/logout', authController.logout);
 // online/offline indicator.
 router.post('/heartbeat', authMiddleware, authController.heartbeat);
 
+// Onboarding-complete route — logged-in users only. Called once by the
+// frontend when a first-time user finishes or skips the onboarding tour,
+// so it doesn't show again on future logins.
+router.post('/onboarding-complete', authMiddleware, authController.completeOnboarding);
+
 module.exports = router;

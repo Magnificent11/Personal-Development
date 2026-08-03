@@ -53,6 +53,13 @@ const userSchema = new mongoose.Schema({
   lastSeen: {
     type: Date,
     default: null
+  },
+  // Whether this user has completed (or skipped) the first-time onboarding
+  // tour. Checked by the frontend on login/dashboard load to decide whether
+  // to show it. Defaults to false so every new registration sees it once.
+  hasCompletedOnboarding: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt fields
