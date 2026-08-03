@@ -35,7 +35,6 @@ exports.register = async (req, res) => {
       firstName,
       lastName
       // role defaults to "user" via the schema
-      // hasCompletedOnboarding defaults to false via the schema
     });
     
     res.status(201).json({ 
@@ -45,8 +44,7 @@ exports.register = async (req, res) => {
         username: newUser.username,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
-        role: newUser.role,
-        hasCompletedOnboarding: newUser.hasCompletedOnboarding
+        role: newUser.role
       } 
     });
   } catch (error) {
@@ -141,8 +139,7 @@ exports.login = async (req, res) => {
         username: existingUser.username,
         firstName: existingUser.firstName,
         lastName: existingUser.lastName,
-        role: existingUser.role,
-        hasCompletedOnboarding: existingUser.hasCompletedOnboarding
+        role: existingUser.role
       },
     });
   } catch (error) {
@@ -233,21 +230,5 @@ exports.heartbeat = async (req, res) => {
   } catch (error) {
     console.error("Heartbeat error:", error);
     res.status(500).json({ error: "Heartbeat failed" });
-  }
-};
-
-// Marks the first-time onboarding tour as done (finished or skipped) so
-// it won't show again on future logins. Deliberately minimal, same
-// pattern as heartbeat above.
-exports.completeOnboarding = async (req, res) => {
-  try {
-    await User.findByIdAndUpdate(req.user.id, { hasCompletedOnboarding: true });
-    res.json({ message: "Onboarding marked as complete" });
-  } catch (error) {
-    console.error("Complete onboarding error:", error);
-    res.status(500).json({ 
-      error: "Failed to update onboarding status",
-      details: error.message 
-    });
   }
 };
