@@ -2168,10 +2168,21 @@ async function finishOnboarding() {
         console.warn('[onboarding] could not update localStorage user', e);
     }
 
+    // Fire-and-forget, silent on failure — this is a background sync call,
+    // not a user-initiated action, so it shouldn't interrupt with an alert()
+    // the way apiCall() does. If it fails (e.g. backend not deployed with
+    // this route yet), the localStorage flag above still keeps the tour
+    // from reappearing on this device for this session.
     try {
-        await apiCall('/api/auth/onboarding-complete', 'POST');
+        await fetch(`${API_URL}/api/auth/onboarding-complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
     } catch (e) {
-        console.warn('[onboarding] onboarding-complete call failed', e);
+        console.warn('[onboarding] onboarding-complete call failed silently', e);
     }
 }
 
