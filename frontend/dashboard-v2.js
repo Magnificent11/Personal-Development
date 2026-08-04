@@ -135,6 +135,191 @@ async function handleLogout() {
     window.location.href = 'index.html';
 }
 
+/* ─── ONBOARDING ─────────────────────────────────────────── */
+const ONBOARDING_STEPS = [
+    {
+        id: 'welcome',
+        target: null,
+        title: (name) => `Welcome, ${name}!`,
+        desc: `Let's build the life you want, one honest step at a time.`,
+    },
+    {
+        id: 'add-habit',
+        target: '.add-habit-cell',
+        title: 'Create a Habit',
+        desc: 'Tap here to add a new habit. A quick 5-step setup lets you name it, choose which days it applies to, and pick an icon, color, and flex days.',
+    },
+    {
+        id: 'week-view',
+        target: '.summary-card',
+        title: 'Your Week',
+        desc: 'Your Weekly Summary shows your current streak, best habit, and a trend chart — switch between line, scatter, histogram, or radar view using the dropdown to see which you like.',
+        dockRight: true,
+    },
+    {
+        id: 'month-view',
+        target: '.monthly-card',
+        title: 'Your Month',
+        desc: 'See your whole month at a glance: a daily completion heatmap on the left, and per-habit monthly rates on the right.',
+        dockRight: true,
+    },
+    {
+        id: 'header-icons',
+        target: '.header-actions',
+        title: 'Theme & Logout',
+        desc: 'Switch between light and dark mode, or log out, from up here anytime.',
+    },
+];
+
+let onboardingStepIndex = 0;
+let onboardingUserName = 'there';
+let onboardingActiveTargetEl = null;
+
+function clearOnboardingTargetConstraints() {
+    if (!onboardingActiveTargetEl) return;
+
+    onboardingActiveTargetEl.style.maxHeight = '';
+    onboardingActiveTargetEl.style.overflowY = '';
+    onboardingActiveTargetEl.classList.remove('onboarding-scroll-target', 'onboarding-pop');
+    onboardingActiveTargetEl = null;
+}
+
+function advanceOnboarding() {
+    onboardingStepIndex = Math.min(ONBOARDING_STEPS.length - 1, onboardingStepIndex + 1);
+    renderOnboardingStep();
+}
+
+function renderOnboardingStep() {
+    clearOnboardingTargetConstraints();
+
+    const step = ONBOARDING_STEPS[onboardingStepIndex];
+    const titleEl = document.getElementById('onboarding-title');
+    const descEl = document.getElementById('onboarding-desc');
+    const nextBtn = document.getElementById('onboarding-next');
+    const highlightEl = document.getElementById('onboarding-highlight');
+    const tooltipEl = document.getElementById('onboarding-tooltip');
+    const backdropEl = document.getElementById('onboarding-backdrop');
+
+    if (!step) return;
+
+    if (titleEl) {
+        titleEl.textContent = typeof step.title === 'function' ? step.title(onboardingUserName) : step.title;
+    }
+    if (descEl) {
+        descEl.textContent = step.desc;
+    }
+    if (nextBtn) {
+        nextBtn.textContent = onboardingStepIndex === ONBOARDING_STEPS.length - 1 ? 'Done' : 'Next';
+    }
+
+    if (!step.target) {
+        if (highlightEl) {
+            highlightEl.style.display = 'none';
+        }
+        if (backdropEl) {
+            backdropEl.classList.add('active');
+        }
+        if (tooltipEl) {
+            tooltipEl.classList.add('onboarding-tooltip--centered');
+        }
+        return;
+    }
+
+    if (backdropEl) {
+        backdropEl.classList.remove('active');
+    }
+    if (tooltipEl) {
+        tooltipEl.classList.remove('onboarding-tooltip--centered');
+    }
+
+    const targetEl = document.querySelector(step.target);
+    if (!targetEl) {
+        console.warn('[onboarding] target not found, skipping step:', step.target);
+        advanceOnboarding();
+        return;
+    }
+
+    targetEl.scrollIntoView({ behavior: 'auto', block: 'start' });
+    requestAnimationFrame(() => {
+        window.scrollBy(0, -12);
+        requestAnimationFrame(() => positionOnboardingHighlight(targetEl, !!step.dockRight));
+    });
+}
+
+function positionOnboardingHighlight(targetEl, dockRight) {
+    const pad = 6;
+    const margin = 16;
+    const highlightEl = document.getElementById('onboarding-highlight');
+    const tooltipEl = document.getElementById('onboarding-tooltip');
+
+    if (!targetEl || !highlightEl || !tooltipEl) return;
+
+    const availableHeight = window.innerHeight - margin * 2;
+    const naturalHeight = targetEl.scrollHeight;
+
+    if (naturalHeight > availableHeight) {
+        targetEl.style.maxHeight = `${availableHeight}px`;
+        targetEl.style.overflowY = 'auto';
+        targetEl.classList.add('onboarding-scroll-target');
+    }
+
+    targetEl.classList.add('onboarding-pop');
+    onboardingActiveTargetEl = targetEl;
+
+    const rect = targetEl.getBoundingClientRect();
+
+    highlightEl.style.display = 'block';
+    highlightEl.style.top = `${rect.top - pad}px`;
+    highlightEl.style.left = `${rect.left - pad}px`;
+    highlightEl.style.width = `${rect.width + pad * 2}px`;
+    highlightEl.style.height = `${rect.height + pad * 2}px`;
+
+    const tooltipWidth = tooltipEl.offsetWidth || 320;
+    const tooltipHeight = tooltipEl.offsetHeight || 200;
+
+    if (dockRight) {
+        let top = window.innerHeight / 2 - tooltipHeight / 2;
+        top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
+
+        let left = window.innerWidth - tooltipWidth - margin;
+        left = Math.max(margin, left);
+
+        tooltipEl.style.left = `${left}px`;
+        tooltipEl.style.top = `${top}px`;
+        tooltipEl.style.bottom = 'auto';
+        return;
+    }
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    let top;
+    if (spaceBelow >= tooltipHeight + margin) {
+        top = rect.bottom + pad + 12;
+    } else if (spaceAbove >= tooltipHeight + margin) {
+        top = rect.top - tooltipHeight - pad - 12;
+    } else {
+        top = window.innerHeight - tooltipHeight - margin;
+    }
+    top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
+
+    let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - tooltipWidth - margin));
+
+    tooltipEl.style.left = `${left}px`;
+    tooltipEl.style.top = `${top}px`;
+    tooltipEl.style.bottom = 'auto';
+}
+
+window.addEventListener('resize', () => {
+    const overlay = document.getElementById('onboarding-overlay');
+    if (!overlay || !overlay.classList.contains('open')) return;
+    const step = ONBOARDING_STEPS[onboardingStepIndex];
+    if (!step || !step.target) return;
+    const el = document.querySelector(step.target);
+    if (el) positionOnboardingHighlight(el, !!step.dockRight);
+});
+
 /* ─── DATA ────────────────────────────────────────────────── */
 
 const HABIT_COLORS = [
