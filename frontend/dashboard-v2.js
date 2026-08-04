@@ -2053,12 +2053,14 @@ const ONBOARDING_STEPS = [
         target: '.summary-card',
         title: 'Your Week',
         desc: 'Your Weekly Summary shows your current streak, best habit, and a trend chart — switch between line, scatter, histogram, or radar view using the dropdown to see which you like.',
+        dockRight: true,
     },
     {
         id: 'month-view',
         target: '.monthly-card',
         title: 'Your Month',
         desc: 'See your whole month at a glance: a daily completion heatmap on the left, and per-habit monthly rates on the right.',
+        dockRight: true,
     },
     {
         id: 'header-icons',
@@ -2127,11 +2129,11 @@ function renderOnboardingStep() {
     targetEl.scrollIntoView({ behavior: 'auto', block: 'start' });
     requestAnimationFrame(() => {
         window.scrollBy(0, -12);
-        requestAnimationFrame(() => positionOnboardingHighlight(targetEl));
+        requestAnimationFrame(() => positionOnboardingHighlight(targetEl, !!step.dockRight));
     });
 }
 
-function positionOnboardingHighlight(targetEl) {
+function positionOnboardingHighlight(targetEl, dockRight) {
     const pad = 6;
     const margin = 16;
     const highlightEl = document.getElementById('onboarding-highlight');
@@ -2163,6 +2165,19 @@ function positionOnboardingHighlight(targetEl) {
 
     const tooltipWidth = tooltipEl.offsetWidth || 320;
     const tooltipHeight = tooltipEl.offsetHeight || 200;
+
+    if (dockRight) {
+        let top = window.innerHeight / 2 - tooltipHeight / 2;
+        top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
+
+        let left = window.innerWidth - tooltipWidth - margin;
+        left = Math.max(margin, left);
+
+        tooltipEl.style.left = `${left}px`;
+        tooltipEl.style.top = `${top}px`;
+        tooltipEl.style.bottom = 'auto';
+        return;
+    }
 
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
@@ -2235,7 +2250,7 @@ window.addEventListener('resize', () => {
     const step = ONBOARDING_STEPS[onboardingStepIndex];
     if (!step.target) return;
     const el = document.querySelector(step.target);
-    if (el) positionOnboardingHighlight(el);
+    if (el) positionOnboardingHighlight(el, !!step.dockRight);
 });
 
 /* ─── INIT ──────────────────────────────────────────────── */
