@@ -2167,7 +2167,10 @@ function positionOnboardingHighlight(targetEl, dockRight) {
     const tooltipHeight = tooltipEl.offsetHeight || 200;
 
     if (dockRight) {
-        let top = window.innerHeight / 2 - tooltipHeight / 2;
+        // Anchor vertically to the highlighted element itself, not the whole
+        // viewport — keeps the tooltip near what it's describing instead of
+        // floating in unrelated empty space when the target is short/empty.
+        let top = rect.top + rect.height / 2 - tooltipHeight / 2;
         top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
 
         let left = window.innerWidth - tooltipWidth - margin;
@@ -2176,6 +2179,7 @@ function positionOnboardingHighlight(targetEl, dockRight) {
         tooltipEl.style.left = `${left}px`;
         tooltipEl.style.top = `${top}px`;
         tooltipEl.style.bottom = 'auto';
+        tooltipEl.classList.add('onboarding-tooltip--docked-right');
         return;
     }
 

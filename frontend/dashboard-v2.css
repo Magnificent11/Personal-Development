@@ -1727,3 +1727,23 @@ body.onboarding-lock-scroll {
 @media (max-width: 640px) {
     .onboarding-tooltip { width: min(300px, 88vw); }
 }
+/* Small pointer connecting the docked tooltip back to the highlighted
+   element, so it reads as attached rather than a stray floating card. */
+.onboarding-tooltip--docked-right::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -8px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid var(--surface-bg);
+}
+
+/* Tint the tooltip border gold to match the spotlight ring, reinforcing
+   that it belongs to the highlight rather than being a generic modal. */
+.onboarding-tooltip {
+    border-color: var(--gold-border);
+}
