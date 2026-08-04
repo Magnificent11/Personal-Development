@@ -2033,6 +2033,230 @@ if (trendMonthNextBtn) {
     });
 }
 
+/* ─── FIRST-TIME ONBOARDING TOUR ─────────────────────────── */
+
+const ONBOARDING_STEPS = [
+    {
+        id: 'welcome',
+        target: null,
+        title: (name) => `Welcome, ${name}!`,
+        desc: `Let's build the life you want, one honest step at a time.`,
+    },
+    {
+        id: 'add-habit',
+        target: '.add-habit-cell',
+        title: 'Create a Habit',
+        desc: 'Tap here to add a new habit. A quick 5-step setup lets you name it, choose which days it applies to, and pick an icon, color, and flex days.',
+    },
+    {
+        id: 'week-view',
+        target: '.summary-card',
+        title: 'Your Week',
+        desc: 'Your Weekly Summary shows your current streak, best habit, and a trend chart — switch between line, scatter, histogram, or radar view using the dropdown to see which you like.',
+        dockRight: true,
+    },
+    {
+        id: 'month-view',
+        target: '.monthly-card',
+        title: 'Your Month',
+        desc: 'See your whole month at a glance: a daily completion heatmap on the left, and per-habit monthly rates on the right.',
+        dockRight: true,
+    },
+    {
+        id: 'header-icons',
+        target: '.header-actions',
+        title: 'Theme & Logout',
+        desc: 'Switch between light and dark mode, or log out, from up here anytime.',
+    },
+];
+
+let onboardingStepIndex = 0;
+let onboardingUserName = '';
+let onboardingActiveTargetEl = null;
+
+function clearOnboardingTargetConstraints() {
+    if (onboardingActiveTargetEl) {
+        onboardingActiveTargetEl.style.maxHeight = '';
+        onboardingActiveTargetEl.style.overflowY = '';
+        onboardingActiveTargetEl.classList.remove('onboarding-pop', 'onboarding-scroll-target');
+    }
+    onboardingActiveTargetEl = null;
+}
+
+function startOnboardingTour(firstName) {
+    console.log('[onboarding] starting tour');
+    onboardingUserName = firstName || 'there';
+    onboardingStepIndex = 0;
+    document.body.classList.add('onboarding-lock-scroll');
+    const overlay = document.getElementById('onboarding-overlay');
+    overlay.style.display = 'block';
+    overlay.classList.add('open');
+    renderOnboardingStep();
+}
+
+function renderOnboardingStep() {
+    clearOnboardingTargetConstraints();
+
+    const step = ONBOARDING_STEPS[onboardingStepIndex];
+    const titleEl = document.getElementById('onboarding-title');
+    const descEl = document.getElementById('onboarding-desc');
+    const nextBtn = document.getElementById('onboarding-next');
+    const highlightEl = document.getElementById('onboarding-highlight');
+    const tooltipEl = document.getElementById('onboarding-tooltip');
+    const backdropEl = document.getElementById('onboarding-backdrop');
+
+    titleEl.textContent = typeof step.title === 'function' ? step.title(onboardingUserName) : step.title;
+    descEl.textContent = step.desc;
+    nextBtn.textContent = onboardingStepIndex === ONBOARDING_STEPS.length - 1 ? 'Done' : 'Next';
+
+    if (!step.target) {
+        highlightEl.style.display = 'none';
+        backdropEl.classList.add('active');
+        tooltipEl.classList.add('onboarding-tooltip--centered');
+        return;
+    }
+
+    backdropEl.classList.remove('active');
+    tooltipEl.classList.remove('onboarding-tooltip--centered');
+
+    const targetEl = document.querySelector(step.target);
+    if (!targetEl) {
+        console.warn('[onboarding] target not found, skipping step:', step.target);
+        advanceOnboarding();
+        return;
+    }
+
+    targetEl.scrollIntoView({ behavior: 'auto', block: 'start' });
+    requestAnimationFrame(() => {
+        window.scrollBy(0, -12);
+        requestAnimationFrame(() => positionOnboardingHighlight(targetEl, !!step.dockRight));
+    });
+}
+
+function positionOnboardingHighlight(targetEl, dockRight) {
+    const pad = 6;
+    const margin = 16;
+    const highlightEl = document.getElementById('onboarding-highlight');
+    const tooltipEl = document.getElementById('onboarding-tooltip');
+
+    // If the target is taller than what fits on screen, cap ITS height and
+    // make it internally scrollable — this keeps the highlight box (which
+    // just wraps whatever the target's current rect is) always fully
+    // visible, never cut off.
+    const availableHeight = window.innerHeight - margin * 2;
+    const naturalHeight = targetEl.scrollHeight;
+
+    if (naturalHeight > availableHeight) {
+        targetEl.style.maxHeight = `${availableHeight}px`;
+        targetEl.style.overflowY = 'auto';
+        targetEl.classList.add('onboarding-scroll-target');
+    }
+
+    targetEl.classList.add('onboarding-pop');
+    onboardingActiveTargetEl = targetEl;
+
+    const rect = targetEl.getBoundingClientRect();
+
+    highlightEl.style.display = 'block';
+    highlightEl.style.top = `${rect.top - pad}px`;
+    highlightEl.style.left = `${rect.left - pad}px`;
+    highlightEl.style.width = `${rect.width + pad * 2}px`;
+    highlightEl.style.height = `${rect.height + pad * 2}px`;
+
+    const tooltipWidth = tooltipEl.offsetWidth || 320;
+    const tooltipHeight = tooltipEl.offsetHeight || 200;
+
+    if (dockRight) {
+        // Anchor vertically to the highlighted element itself, not the whole
+        // viewport — keeps the tooltip near what it's describing instead of
+        // floating in unrelated empty space when the target is short/empty.
+        let top = rect.top + rect.height / 2 - tooltipHeight / 2;
+        top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
+
+        let left = window.innerWidth - tooltipWidth - margin;
+        left = Math.max(margin, left);
+
+        tooltipEl.style.left = `${left}px`;
+        tooltipEl.style.top = `${top}px`;
+        tooltipEl.style.bottom = 'auto';
+        tooltipEl.classList.add('onboarding-tooltip--docked-right');
+        return;
+    }
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    let top;
+    if (spaceBelow >= tooltipHeight + margin) {
+        top = rect.bottom + pad + 12;
+    } else if (spaceAbove >= tooltipHeight + margin) {
+        top = rect.top - tooltipHeight - pad - 12;
+    } else {
+        top = window.innerHeight - tooltipHeight - margin;
+    }
+    top = Math.max(margin, Math.min(top, window.innerHeight - tooltipHeight - margin));
+
+    let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - tooltipWidth - margin));
+
+    tooltipEl.style.left = `${left}px`;
+    tooltipEl.style.top = `${top}px`;
+    tooltipEl.style.bottom = 'auto';
+}
+
+function advanceOnboarding() {
+    if (onboardingStepIndex < ONBOARDING_STEPS.length - 1) {
+        onboardingStepIndex++;
+        renderOnboardingStep();
+    } else {
+        finishOnboarding();
+    }
+}
+
+async function finishOnboarding() {
+    console.log('[onboarding] finishing/closing tour');
+    clearOnboardingTargetConstraints();
+
+    const overlay = document.getElementById('onboarding-overlay');
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+    document.body.classList.remove('onboarding-lock-scroll');
+
+    try {
+        const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        if (storedUser) {
+            storedUser.hasCompletedOnboarding = true;
+            localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+    } catch (e) {
+        console.warn('[onboarding] could not update localStorage user', e);
+    }
+
+    try {
+        await fetch(`${API_URL}/api/auth/onboarding-complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+    } catch (e) {
+        console.warn('[onboarding] onboarding-complete call failed silently', e);
+    }
+}
+
+document.getElementById('onboarding-next').addEventListener('click', advanceOnboarding);
+document.getElementById('onboarding-skip').addEventListener('click', finishOnboarding);
+
+window.addEventListener('resize', () => {
+    const overlay = document.getElementById('onboarding-overlay');
+    if (!overlay.classList.contains('open')) return;
+    const step = ONBOARDING_STEPS[onboardingStepIndex];
+    if (!step.target) return;
+    const el = document.querySelector(step.target);
+    if (el) positionOnboardingHighlight(el, !!step.dockRight);
+});
+
 /* ─── INIT ──────────────────────────────────────────────── */
 
 async function init() {
@@ -2069,6 +2293,30 @@ async function init() {
     renderDonut();
     renderMonthlyProgress();
     renderWeeklySummary();
+
+    try {
+        const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        if (storedUser && !storedUser.hasCompletedOnboarding) {
+            if (HABITS.length > 0) {
+                // Pre-existing user from before this feature shipped — they
+                // already have habits/history, so they don't need a "welcome,
+                // let's get started" tour. Mark it complete silently instead.
+                storedUser.hasCompletedOnboarding = true;
+                localStorage.setItem('user', JSON.stringify(storedUser));
+                fetch(`${API_URL}/api/auth/onboarding-complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }).catch(() => {});
+            } else {
+                startOnboardingTour(storedUser.firstName);
+            }
+        }
+    } catch (e) {
+        console.warn('[onboarding] init check failed', e);
+    }
 }
 
 init();
