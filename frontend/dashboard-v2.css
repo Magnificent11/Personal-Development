@@ -1688,8 +1688,6 @@ body.onboarding-lock-scroll {
    ever touching layout or size. */
 .onboarding-pop {
     filter: brightness(1.12) saturate(1.15);
-    position: relative;
-    z-index: 302;
 }
 
 /* Applied to a target element that's taller than the viewport for the
