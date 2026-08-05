@@ -592,6 +592,7 @@ function render() {
                     if (typeof renderDonut === 'function') renderDonut();
                     if (typeof renderMonthlyProgress === 'function') renderMonthlyProgress();
                     if (typeof renderWeeklySummary === 'function') renderWeeklySummary();
+                    if (typeof renderForecastCard === 'function') renderForecastCard();
 
                     const data = await apiCall(`/api/habits/${habit.id}/toggle`, 'POST', { date: dateKey });
 
@@ -607,6 +608,7 @@ function render() {
                         if (typeof renderDonut === 'function') renderDonut();
                         if (typeof renderMonthlyProgress === 'function') renderMonthlyProgress();
                         if (typeof renderWeeklySummary === 'function') renderWeeklySummary();
+                        if (typeof renderForecastCard === 'function') renderForecastCard();
                     }
                 });
 
@@ -693,6 +695,8 @@ function render() {
     const footer2 = document.createElement('div');
     footer2.className = 'progress-count-footer';
     panelRight.appendChild(footer2);
+
+    if (typeof renderForecastCard === 'function') renderForecastCard();
 }
 
 function clearDragOverStyles() {
@@ -725,6 +729,7 @@ async function performFlexToggle(habit, date, key, markAsFlexed) {
     if (typeof renderDonut === 'function') renderDonut();
     if (typeof renderMonthlyProgress === 'function') renderMonthlyProgress();
     if (typeof renderWeeklySummary === 'function') renderWeeklySummary();
+    if (typeof renderForecastCard === 'function') renderForecastCard();
 
     const data = await apiCall(`/api/habits/${habit.id}/flex-toggle`, 'POST', { date: dateKey });
 
@@ -740,6 +745,7 @@ async function performFlexToggle(habit, date, key, markAsFlexed) {
         if (typeof renderDonut === 'function') renderDonut();
         if (typeof renderMonthlyProgress === 'function') renderMonthlyProgress();
         if (typeof renderWeeklySummary === 'function') renderWeeklySummary();
+        if (typeof renderForecastCard === 'function') renderForecastCard();
     }
 }
 
@@ -959,6 +965,7 @@ async function confirmAddHabit() {
     renderDonut();
     renderMonthlyProgress();
     renderWeeklySummary();
+    renderForecastCard();
 }
 
 document.getElementById('add-modal-cancel').addEventListener('click', closeAddModal);
@@ -1093,6 +1100,7 @@ async function confirmDeleteHabit() {
     renderDonut();
     renderMonthlyProgress();
     renderWeeklySummary();
+    renderForecastCard();
 }
 
 document.getElementById('edit-modal-cancel').addEventListener('click', closeEditModal);
@@ -1111,8 +1119,8 @@ document.getElementById('edit-name-input').addEventListener('keydown', (e) => {
 });
 
 /* ─── NAV BUTTONS ──────────────────────────────────────── */
-document.getElementById('prev-btn').addEventListener('click', () => { weekOffset--; render(); });
-document.getElementById('next-btn').addEventListener('click', () => { weekOffset++; render(); });
+document.getElementById('prev-btn').addEventListener('click', () => { weekOffset--; render(); renderForecastCard(); });
+document.getElementById('next-btn').addEventListener('click', () => { weekOffset++; render(); renderForecastCard(); });
 
 /* ─── LOGOUT ─────────────────────────────────────────────── */
 const logoutBtn = document.getElementById('logout-btn');
@@ -2256,6 +2264,318 @@ window.addEventListener('resize', () => {
     const el = document.querySelector(step.target);
     if (el) positionOnboardingHighlight(el, !!step.dockRight);
 });
+
+/* ─── FORECAST & ACCOMPLISHMENT SUMMARY ─────────────────────
+   All figures below are computed from real local data (checked/flexed
+   maps, HABITS array) using the same helpers the rest of the app already
+   relies on. "Insight of the Week" / "Next Best Action" / "Future You"
+   are rule-based templates, not a live AI call — see the note at the
+   bottom of this section for how to swap in a real backend later. ───── */
+
+const MILESTONE_THRESHOLDS = [7, 14, 30, 50, 100, 200, 365];
+
+/* ── ACCOMPLISHMENT METRICS ─────────────────────────────── */
+
+// Aggregate completion rate across ALL habits for the current real
+// calendar week (independent of whatever week is paged into view above).
+function getOverallWeeklyCompletion() {
+    const dates = getWeekDatesForOffset(0);
+    let done = 0, total = 0;
+    HABITS.forEach(h => {
+        const eligible = getRateEligibleDates(h, dates);
+        total += eligible.length;
+        done += countCheckedThisWeek(h.id, eligible);
+    });
+    return { done, total, rate: total > 0 ? done / total : 0 };
+}
+
+// Best currently-active streak across all habits (reuses the same logic
+// as the Weekly Summary "Current Streak" stat).
+function getTopStreak() {
+    if (HABITS.length === 0) return null;
+    const streaks = HABITS.map(h => ({ habit: h, streak: getHabitCurrentStreak(h) }));
+    return streaks.reduce((best, cur) => cur.streak > best.streak ? cur : best, streaks[0]);
+}
+
+// Habit with the largest positive change in weekly completion rate,
+// this week vs. last week.
+function getBiggestImprovement() {
+    if (HABITS.length === 0) return null;
+    const thisWeek = getWeekDatesForOffset(0);
+    const lastWeek = getWeekDatesForOffset(-1);
+    let best = null;
+    HABITS.forEach(h => {
+        const cur = getHabitWeeklyRate(h, thisWeek);
+        const prev = getHabitWeeklyRate(h, lastWeek);
+        const delta = cur - prev;
+        if (!best || delta > best.delta) best = { habit: h, delta, cur, prev };
+    });
+    return best;
+}
+
+// Highest milestone crossed so far, based on total lifetime check-ins
+// across all habits combined.
+function getLatestMilestone() {
+    const totalCompletions = checked.size;
+    const crossed = MILESTONE_THRESHOLDS.filter(t => totalCompletions >= t);
+    if (crossed.length === 0) return { total: totalCompletions, next: MILESTONE_THRESHOLDS[0] };
+    const latest = crossed[crossed.length - 1];
+    const next = MILESTONE_THRESHOLDS.find(t => t > latest) || null;
+    return { total: totalCompletions, latest, next };
+}
+
+// Habit with the best combination of high AND stable completion over the
+// last 4 calendar weeks (mean minus variance — rewards consistency, not
+// just a single great week).
+function getMostConsistentHabit() {
+    if (HABITS.length === 0) return null;
+    const weeks = [0, -1, -2, -3].map(o => getWeekDatesForOffset(o));
+    let best = null;
+    HABITS.forEach(h => {
+        const rates = weeks.map(w => getHabitWeeklyRate(h, w));
+        const mean = rates.reduce((a, b) => a + b, 0) / rates.length;
+        const variance = rates.reduce((a, b) => a + (b - mean) ** 2, 0) / rates.length;
+        const score = mean - variance;
+        if (!best || score > best.score) best = { habit: h, mean, variance, score };
+    });
+    return best;
+}
+
+/* ── FORECAST METRICS ───────────────────────────────────── */
+
+// Projects this week's final completion count by extrapolating the
+// completion pace of days elapsed so far onto the full week.
+function getGoalCompletionEstimate() {
+    const thisWeek = getWeekDatesForOffset(0);
+    const elapsed = thisWeek.filter(d => d <= today());
+    let doneSoFar = 0, eligibleSoFar = 0, eligibleTotal = 0;
+    HABITS.forEach(h => {
+        eligibleTotal += getRateEligibleDates(h, thisWeek).length;
+        const soFarEligible = getRateEligibleDates(h, elapsed);
+        eligibleSoFar += soFarEligible.length;
+        doneSoFar += countCheckedThisWeek(h.id, soFarEligible);
+    });
+    const paceRate = eligibleSoFar > 0 ? doneSoFar / eligibleSoFar : 0;
+    return {
+        paceRate,
+        projectedDone: Math.round(paceRate * eligibleTotal),
+        eligibleTotal,
+    };
+}
+
+// Same extrapolation, scaled to the whole current month.
+function getMonthlyProjection() {
+    const t = today();
+    const year = t.getFullYear(), month = t.getMonth();
+    const totalDaysInMonth = daysInMonth(year, month);
+    const dayOfMonth = t.getDate();
+
+    let doneSoFar = 0, eligibleSoFar = 0, eligibleTotal = 0;
+    HABITS.forEach(h => {
+        for (let day = 1; day <= totalDaysInMonth; day++) {
+            const date = new Date(year, month, day);
+            if (!isScheduledDay(h, date) || isFlexedDay(h, date)) continue;
+            eligibleTotal++;
+            if (day <= dayOfMonth) {
+                eligibleSoFar++;
+                if (checked.has(`${h.id}|${toKey(date)}`)) doneSoFar++;
+            }
+        }
+    });
+    const paceRate = eligibleSoFar > 0 ? doneSoFar / eligibleSoFar : 0;
+    return {
+        paceRate,
+        projectedTotal: Math.round(paceRate * eligibleTotal),
+        eligibleTotal,
+        doneSoFar,
+    };
+}
+
+// Direction of change: this week's aggregate rate vs. the week before —
+// "improving" / "declining" / "steady" (±5 points counts as steady).
+function getTrendPrediction() {
+    const cur = getWeeklyRateForOffset(0);
+    const prev = getWeeklyRateForOffset(-1);
+    const delta = cur.rate - prev.rate;
+    let direction = 'steady';
+    if (delta > 0.05) direction = 'improving';
+    else if (delta < -0.05) direction = 'declining';
+    return { curRate: cur.rate, prevRate: prev.rate, delta, direction };
+}
+
+function getWeeklyRateForOffset(offset) {
+    const dates = getWeekDatesForOffset(offset);
+    let done = 0, total = 0;
+    HABITS.forEach(h => {
+        const eligible = getRateEligibleDates(h, dates);
+        total += eligible.length;
+        done += countCheckedThisWeek(h.id, eligible);
+    });
+    return { done, total, rate: total > 0 ? done / total : 0 };
+}
+
+// Habits that are BOTH under 50% this week AND trending down vs last
+// week — sorted worst-delta-first.
+function getRiskAlerts() {
+    const thisWeek = getWeekDatesForOffset(0);
+    const lastWeek = getWeekDatesForOffset(-1);
+    return HABITS.map(h => {
+        const cur = getHabitWeeklyRate(h, thisWeek);
+        const prev = getHabitWeeklyRate(h, lastWeek);
+        return { habit: h, cur, prev, delta: cur - prev };
+    })
+    .filter(r => r.cur < 0.5 && r.delta < 0)
+    .sort((a, b) => a.delta - b.delta);
+}
+
+/* ── NARRATIVE GENERATORS (rule-based "AI-style" text) ──────
+   NOTE: to swap this for a real LLM later, replace the body of
+   generateInsightOfWeek() with a call to a backend endpoint (e.g.
+   apiCall('/api/insights', 'POST', context)) that returns generated
+   text — everything else in this file stays the same. */
+
+function generateInsightOfWeek(ctx) {
+    if (HABITS.length === 0) {
+        return "Add your first habit to start building insights about your patterns.";
+    }
+    if (ctx.riskAlerts.length > 0) {
+        const r = ctx.riskAlerts[0];
+        return `${r.habit.icon || ''} ${r.habit.label} has dropped ${Math.round(Math.abs(r.delta) * 100)} points from last week — a good week to bring it back into focus.`;
+    }
+    if (ctx.topStreak && ctx.topStreak.streak >= 7) {
+        return `You're ${ctx.topStreak.streak} days deep into your ${ctx.topStreak.habit.icon || ''} ${ctx.topStreak.habit.label} streak — this is turning into a real habit.`;
+    }
+    if (ctx.trend.direction === 'improving') {
+        return `Your overall consistency is trending up ${Math.round(ctx.trend.delta * 100)} points over the last two weeks. Keep the momentum going.`;
+    }
+    if (ctx.mostConsistent) {
+        return `${ctx.mostConsistent.habit.icon || ''} ${ctx.mostConsistent.habit.label} has been your steadiest habit lately — a reliable anchor in your routine.`;
+    }
+    return "Steady week overall — no major shifts in either direction.";
+}
+
+function generateNextBestAction(ctx) {
+    if (HABITS.length === 0) return "Create your first habit to get started.";
+
+    if (ctx.riskAlerts.length > 0) {
+        const r = ctx.riskAlerts[0];
+        return `Check off ${r.habit.icon || ''} ${r.habit.label} today to start reversing its recent dip.`;
+    }
+
+    const t = today();
+    const pending = HABITS.filter(h =>
+        isScheduledDay(h, t) && !isFlexedDay(h, t) && !checked.has(`${h.id}|${toKey(t)}`)
+    );
+    if (pending.length > 0) {
+        const h = pending[0];
+        return `${h.icon || ''} ${h.label} is still open for today — knock it out to keep your week on track.`;
+    }
+    return "You're fully checked off for today. Nice work — come back tomorrow.";
+}
+
+function generateFutureYou(monthlyProjection) {
+    if (HABITS.length === 0) {
+        return "Start tracking today, and in a month you'll be able to see exactly who you're becoming.";
+    }
+    const { projectedTotal, eligibleTotal } = monthlyProjection;
+    const pct = eligibleTotal > 0 ? Math.round((projectedTotal / eligibleTotal) * 100) : 0;
+    return `At your current pace, you're on track to complete ${projectedTotal} of ${eligibleTotal} scheduled check-ins this month (~${pct}%). Keep this up and next month's you will be operating on autopilot.`;
+}
+
+/* ── RENDER ──────────────────────────────────────────────── */
+
+function renderForecastCard() {
+    const accList = document.getElementById('accomplishment-list');
+    const fcList = document.getElementById('forecast-list');
+    const insightEl = document.getElementById('insight-text');
+    const actionEl = document.getElementById('next-action-text');
+    const futureEl = document.getElementById('future-you-text');
+    if (!accList || !fcList) return; // card not on this page
+
+    if (HABITS.length === 0) {
+        accList.innerHTML = `<div class="forecast-stat-row"><span class="forecast-stat-label">No habits yet</span></div>`;
+        fcList.innerHTML = `<div class="forecast-stat-row"><span class="forecast-stat-label">Add a habit to see forecasts</span></div>`;
+        insightEl.textContent = generateInsightOfWeek({ riskAlerts: [], topStreak: null, trend: { direction: 'steady', delta: 0 }, mostConsistent: null });
+        actionEl.textContent = generateNextBestAction({ riskAlerts: [] });
+        futureEl.textContent = generateFutureYou({ projectedTotal: 0, eligibleTotal: 0 });
+        return;
+    }
+
+    // ── Gather all metrics once ──
+    const weekly = getOverallWeeklyCompletion();
+    const topStreak = getTopStreak();
+    const improvement = getBiggestImprovement();
+    const milestone = getLatestMilestone();
+    const consistent = getMostConsistentHabit();
+
+    const goalEstimate = getGoalCompletionEstimate();
+    const monthlyProjection = getMonthlyProjection();
+    const trend = getTrendPrediction();
+    const riskAlerts = getRiskAlerts();
+
+    // ── Accomplishment Summary ──
+    accList.innerHTML = '';
+    accList.appendChild(makeStatRow('Weekly Completion', `${Math.round(weekly.rate * 100)}%`,
+        `${weekly.done}/${weekly.total} check-ins`, weekly.rate >= 0.75 ? 'value-good' : ''));
+
+    accList.appendChild(makeStatRow('Longest Streak',
+        topStreak && topStreak.streak > 0 ? `${topStreak.streak} day${topStreak.streak === 1 ? '' : 's'}` : '—',
+        topStreak && topStreak.streak > 0 ? `${topStreak.habit.icon || ''} ${topStreak.habit.label}` : 'No active streak',
+        'value-gold'));
+
+    accList.appendChild(makeStatRow('Biggest Improvement',
+        improvement && improvement.delta > 0 ? `+${Math.round(improvement.delta * 100)}pp` : 'No change',
+        improvement && improvement.delta > 0 ? `${improvement.habit.icon || ''} ${improvement.habit.label}` : '',
+        improvement && improvement.delta > 0 ? 'value-good' : ''));
+
+    accList.appendChild(makeStatRow('Milestone Earned',
+        milestone.latest ? `${milestone.latest} check-ins` : `${milestone.total}/${milestone.next}`,
+        milestone.latest ? `Next: ${milestone.next || '—'} check-ins` : 'Total check-ins so far',
+        'value-gold'));
+
+    accList.appendChild(makeStatRow('Most Consistent Habit',
+        consistent ? `${Math.round(consistent.mean * 100)}% avg` : '—',
+        consistent ? `${consistent.habit.icon || ''} ${consistent.habit.label}` : '', ''));
+
+    // ── Forecast ──
+    fcList.innerHTML = '';
+    fcList.appendChild(makeStatRow('Goal Completion Estimate',
+        `${goalEstimate.projectedDone}/${goalEstimate.eligibleTotal}`,
+        `~${Math.round(goalEstimate.paceRate * 100)}% pace this week`, ''));
+
+    fcList.appendChild(makeStatRow('Monthly Projection',
+        `${monthlyProjection.projectedTotal}/${monthlyProjection.eligibleTotal}`,
+        `${Math.round(monthlyProjection.paceRate * 100)}% projected rate`, ''));
+
+    fcList.appendChild(makeStatRow('Trend Prediction',
+        trend.direction === 'improving' ? '▲ Improving' : trend.direction === 'declining' ? '▼ Declining' : '— Steady',
+        `${Math.round(Math.abs(trend.delta) * 100)}pp vs. prior week`,
+        trend.direction === 'improving' ? 'value-good' : trend.direction === 'declining' ? 'value-warn' : ''));
+
+    fcList.appendChild(makeStatRow('Risk Alert',
+        riskAlerts.length > 0 ? `${riskAlerts.length} habit${riskAlerts.length === 1 ? '' : 's'} at risk` : 'None',
+        riskAlerts.length > 0 ? `${riskAlerts[0].habit.icon || ''} ${riskAlerts[0].habit.label} needs attention` : 'All habits stable',
+        riskAlerts.length > 0 ? 'value-warn' : 'value-good'));
+
+    // ── Narrative callouts ──
+    const ctx = { riskAlerts, topStreak, trend, mostConsistent: consistent };
+    insightEl.textContent = generateInsightOfWeek(ctx);
+    actionEl.textContent = generateNextBestAction(ctx);
+    futureEl.textContent = generateFutureYou(monthlyProjection);
+}
+
+function makeStatRow(label, value, sub, valueClass) {
+    const row = document.createElement('div');
+    row.className = 'forecast-stat-row';
+    row.innerHTML = `
+        <span class="forecast-stat-label">${label}</span>
+        <span class="forecast-stat-value ${valueClass || ''}">
+            ${value}
+            ${sub ? `<span class="forecast-stat-sub">${sub}</span>` : ''}
+        </span>
+    `;
+    return row;
+}
 
 /* ─── INIT ──────────────────────────────────────────────── */
 

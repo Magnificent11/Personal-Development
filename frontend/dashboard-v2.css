@@ -1242,6 +1242,132 @@ html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
     font-variant-numeric: tabular-nums;
 }
 
+/* ─── FORECAST & ACCOMPLISHMENT SUMMARY CARD ────────────── */
+.forecast-card {
+    margin-top: 24px;
+    padding: 28px 32px;
+    width: 100%;
+}
+
+.forecast-top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 28px;
+}
+
+.forecast-data-panel--bordered {
+    border-left: 1px solid var(--glass-border);
+    padding-left: 32px;
+}
+
+.forecast-panel-header {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+}
+
+.forecast-stat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.forecast-stat-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.forecast-stat-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.forecast-stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.forecast-stat-value {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+}
+.forecast-stat-value.value-warn { color: var(--danger-color); }
+.forecast-stat-value.value-good { color: var(--success-color); }
+.forecast-stat-value.value-gold { color: var(--gold-light); }
+
+.forecast-stat-sub {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.forecast-callout-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding-top: 24px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.forecast-callout {
+    background: var(--overlay-1);
+    border: 1px solid var(--glass-border);
+    border-left: 3px solid var(--gold-border);
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+.forecast-callout--insight { border-left-color: var(--gold); }
+.forecast-callout--action  { border-left-color: var(--streak-color); }
+.forecast-callout--future  { border-left-color: var(--success-color); }
+
+.forecast-callout-header {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.forecast-callout-text {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 820px) {
+    .forecast-top-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    .forecast-data-panel--bordered {
+        border-left: none;
+        border-top: 1px solid var(--glass-border);
+        padding-left: 0;
+        padding-top: 24px;
+    }
+    .forecast-callout-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .forecast-card {
+        padding: 20px 16px;
+    }
+}
+
 /* Responsive: distribution has to earn its keep on narrow screens */
 @media (max-width: 820px) {
     .monthly-progress-name {

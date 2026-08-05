@@ -213,6 +213,46 @@
     </div>
 </div>
 
+<!-- ── FORECAST & ACCOMPLISHMENT SUMMARY CARD ──────────────── -->
+<div class="card forecast-card">
+    <div class="monthly-section-header monthly-section-header--center">
+        <span class="monthly-title">Forecast &amp; Accomplishment Summary</span>
+    </div>
+    <div class="donut-divider"></div>
+
+    <!-- Top: 2-column data grid, mirrors the Monthly Overview split -->
+    <div class="forecast-top-grid">
+        <div class="forecast-data-panel">
+            <div class="forecast-panel-header">🏆 Accomplishment Summary</div>
+            <div class="forecast-stat-list" id="accomplishment-list">
+                <!-- rows injected by JS -->
+            </div>
+        </div>
+        <div class="forecast-data-panel forecast-data-panel--bordered">
+            <div class="forecast-panel-header">🔮 Forecast</div>
+            <div class="forecast-stat-list" id="forecast-list">
+                <!-- rows injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom: 3-across narrative callouts -->
+    <div class="forecast-callout-row">
+        <div class="forecast-callout forecast-callout--insight">
+            <div class="forecast-callout-header">💡 Insight of the Week</div>
+            <p class="forecast-callout-text" id="insight-text"></p>
+        </div>
+        <div class="forecast-callout forecast-callout--action">
+            <div class="forecast-callout-header">🎯 Next Best Action</div>
+            <p class="forecast-callout-text" id="next-action-text"></p>
+        </div>
+        <div class="forecast-callout forecast-callout--future">
+            <div class="forecast-callout-header">🌱 Future You</div>
+            <p class="forecast-callout-text" id="future-you-text"></p>
+        </div>
+    </div>
+</div>
+
 <!-- ── ADD HABIT MODAL ───────────────────────────────────── -->
 <div class="modal-overlay" id="add-modal-overlay">
     <div class="modal">
@@ -356,20 +396,6 @@
                 <button class="btn btn-add" id="edit-modal-next">Next</button>
                 <button class="btn btn-add" id="edit-modal-confirm">Save</button>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- ── FIRST-TIME ONBOARDING TOUR ────────────────────────── -->
-<div class="onboarding-overlay" id="onboarding-overlay">
-    <div class="onboarding-backdrop" id="onboarding-backdrop"></div>
-    <div class="onboarding-highlight" id="onboarding-highlight"></div>
-    <div class="modal onboarding-tooltip" id="onboarding-tooltip">
-        <h2 id="onboarding-title">Welcome!</h2>
-        <p class="onboarding-desc" id="onboarding-desc"></p>
-        <div class="modal-actions">
-            <button class="btn btn-cancel" id="onboarding-skip" type="button">Skip</button>
-            <button class="btn btn-add" id="onboarding-next" type="button">Next</button>
         </div>
     </div>
 </div>
